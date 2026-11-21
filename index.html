@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Absensi Harian Pekerja Lapangan</title>
   <style>
-    /* DESAIN MOBILE-FIRST & OUTDOOR-FRIENDLY (KONTRAS TINGGI) */
     :root {
       --primary: #1d4ed8;
       --primary-dark: #1e40af;
       --success: #15803d;
       --success-bg: #dcfce7;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
       --danger: #b91c1c;
       --danger-bg: #fee2e2;
       --bg: #f3f4f6;
@@ -50,7 +51,7 @@
 
     button {
       width: 100%;
-      min-height: 52px;
+      min-height: 50px;
       font-size: 16px;
       font-weight: 700;
       border: none;
@@ -73,26 +74,46 @@
       margin-bottom: 12px;
       background: #fafafa;
     }
-    .worker-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .worker-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: 8px; }
     .worker-name { font-weight: 800; font-size: 17px; color: #000; }
-    .worker-role { font-size: 13px; font-weight: 700; background: #e5e7eb; padding: 3px 8px; border-radius: 6px; }
+    .worker-role { font-size: 13px; font-weight: 700; background: #e5e7eb; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
 
-    /* TOMBOL STATUS HADIR BESAR */
+    /* TOMBOL STATUS HADIR */
     .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
     .status-btn {
-      min-height: 48px;
+      min-height: 46px;
       border: 2px solid var(--border);
       background: #fff;
       color: #111827;
       border-radius: 8px;
       font-weight: 700;
       font-size: 14px;
+      padding: 8px 4px;
     }
     .status-btn.active-full { background: #15803d; color: #fff; border-color: #15803d; }
     .status-btn.active-half { background: #d97706; color: #fff; border-color: #d97706; }
     .status-btn.active-absent { background: #b91c1c; color: #fff; border-color: #b91c1c; }
 
-    .extra-inputs { display: grid; grid-template-columns: 110px 1fr; gap: 8px; }
+    /* TOMBOL UANG MAKAN (>18.00 WIB) */
+    .meal-btn {
+      min-height: 44px;
+      margin-bottom: 10px;
+      border: 2px solid var(--border);
+      background: #fff;
+      color: #374151;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    .meal-btn.active-meal {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border-color: var(--warning);
+    }
+
+    .extra-inputs { display: grid; grid-template-columns: 115px 1fr; gap: 8px; }
     .extra-inputs input { margin-bottom: 0; min-height: 42px; font-size: 14px; }
 
     /* PREVIEW FOTO */
@@ -106,7 +127,7 @@
       display: none;
     }
 
-    /* NOTIFIKASI BESAR */
+    /* NOTIFIKASI */
     .alert {
       padding: 16px;
       border-radius: 10px;
@@ -118,7 +139,6 @@
     .alert-success { background: var(--success-bg); color: var(--success); border: 2px solid var(--success); }
     .alert-error { background: var(--danger-bg); color: var(--danger); border: 2px solid var(--danger); }
 
-    /* MODAL TAMBAH PEKERJA */
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(0,0,0,0.6);
       display: none; align-items: center; justify-content: center; padding: 16px; z-index: 99;
@@ -130,7 +150,6 @@
 <body>
 
 <div class="container">
-  <!-- NOTIFIKASI GLOBAL -->
   <div id="alertBox" class="alert"></div>
 
   <!-- 1. LAYAR LOGIN PIN PROYEK -->
@@ -148,14 +167,17 @@
       <h1>Form Absensi Harian</h1>
       <p id="tanggalHariIni" style="margin:4px 0 14px 0; font-weight:700; color:var(--primary);"></p>
 
-      <label for="selectProyek">Nama Proyek / Lokasi</label>
-      <select id="selectProyek"></select>
+      <label for="selectProyek">1. Pilih Proyek / Lokasi</label>
+      <select id="selectProyek" onchange="onProyekChange()"></select>
 
-      <label for="inputOperator">Nama Mandor / Operator</label>
-      <input type="text" id="inputOperator" placeholder="Contoh: Budi Santoso">
+      <label for="selectMandor">2. Pilih Mandor / Grup</label>
+      <select id="selectMandor" onchange="onMandorChange()"></select>
+
+      <label for="inputOperator">3. Nama Pelaksana Lapangan / Operator</label>
+      <input type="text" id="inputOperator" placeholder="Contoh: Andi (Pelaksana)">
     </div>
 
-    <!-- DAFTAR PEKERJA -->
+    <!-- DAFTAR PEKERJA TERSARING -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Daftar Pekerja (<span id="jumlahPekerja">0</span>)</h2>
@@ -164,10 +186,10 @@
       <div id="workerList"></div>
     </div>
 
-    <!-- FOTO BUKTI KEHADIRAN (LANGSUNG KAMERA) -->
+    <!-- FOTO BUKTI KEHADIRAN -->
     <div class="card">
       <h2>Foto Kelompok Pekerja</h2>
-      <p style="margin:0 0 10px 0; font-size:14px; color:#374151;">Ambil foto langsung di lokasi proyek. Foto otomatis dikompres agar hemat kuota.</p>
+      <p style="margin:0 0 10px 0; font-size:14px; color:#374151;">Ambil foto langsung di lokasi proyek bersama grup mandor terpilih.</p>
       <input type="file" id="inputFoto" accept="image/*" capture="environment" style="display:none;" onchange="prosesFoto(event)">
       <button type="button" class="btn-secondary" onclick="document.getElementById('inputFoto').click()">Ambil Foto Kamera</button>
       <img id="previewFoto" alt="Preview Foto Absensi">
@@ -175,7 +197,7 @@
     </div>
 
     <!-- TOMBOL KIRIM -->
-    <button id="btnKirim" class="btn-success" onclick="kirimAbsensi()">Kirim Absensi Sekarang</button>
+    <button id="btnKirim" class="btn-success" onclick="kirimAbsensi()">Kirim Absensi Grup Ini</button>
   </div>
 </div>
 
@@ -183,6 +205,8 @@
 <div id="modalTambah" class="modal-backdrop">
   <div class="modal-content">
     <h2>Tambah Pekerja Baru</h2>
+    <p id="infoTargetTambah" style="font-size:13px; color:#1d4ed8; font-weight:700; margin-top:0;"></p>
+
     <label for="baruNama">Nama Lengkap</label>
     <input type="text" id="baruNama" placeholder="Contoh: Slamet Riyadi">
 
@@ -204,15 +228,15 @@
 
 <script>
   // =========================================================================
-  // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+  // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA (BERAKHIRAN /exec)
   // =========================================================================
   const URL_GAS = "https://script.google.com/macros/s/AKfycbzBXvJyrAtk9BdcLdeD3-Pw_r2EBA6jwokPEuuPAmA/dev";
 
   let currentPin = "";
-  let daftarPekerja = [];
+  let semuaPekerja = [];      // Seluruh pekerja aktif dari Master_Pekerja
+  let pekerjaTampil = [];     // Pekerja tersaring sesuai Proyek + Mandor terpilih
   let fotoBase64Terkompresi = "";
 
-  // Tampilkan tanggal hari ini
   document.getElementById("tanggalHariIni").textContent = new Date().toLocaleDateString("id-ID", {
     weekday: "long", day: "numeric", month: "long", year: "numeric"
   });
@@ -229,7 +253,7 @@
     document.getElementById("alertBox").style.display = "none";
   }
 
-  // 1. VERIFIKASI PIN & TARIK DATA PEKERJA (GET)
+  // 1. VERIFIKASI PIN & TARIK DATA MASTER
   async function verifikasiPin() {
     sembunyikanAlert();
     const pin = document.getElementById("inputPin").value.trim();
@@ -249,14 +273,15 @@
       }
 
       currentPin = pin;
-      daftarPekerja = data.daftar_pekerja.map(p => ({
+      semuaPekerja = data.daftar_pekerja.map(p => ({
         ...p,
-        status_hadir: 1, // Default: Hadir Full (1) agar mandor cepat
+        status_hadir: 1,
         jam_lembur: 0,
+        uang_makan: 0, // Default 0 (belum lewat 18.00 WIB)
         catatan: ""
       }));
 
-      // Isi dropdown proyek
+      // Isi Dropdown Proyek
       const selectProyek = document.getElementById("selectProyek");
       selectProyek.innerHTML = "";
       const proyekList = data.daftar_proyek.length ? data.daftar_proyek : ["Proyek Utama"];
@@ -267,7 +292,9 @@
         selectProyek.appendChild(opt);
       });
 
-      renderDaftarPekerja();
+      // Jalankan filter bertingkat: Proyek -> Mandor -> Pekerja
+      onProyekChange();
+
       document.getElementById("pinSection").classList.add("hidden");
       document.getElementById("mainSection").classList.remove("hidden");
 
@@ -279,35 +306,78 @@
     }
   }
 
-  // Helper: escape HTML agar input pengguna tidak dieksekusi sebagai HTML/script
-  function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
+  // 2. FILTER BERTINGKAT: SAAT PROYEK DIPILIH -> SARING DAFTAR MANDOR
+  function onProyekChange() {
+    const proyekDipilih = document.getElementById("selectProyek").value;
+    const mandorSet = new Set();
+
+    semuaPekerja
+      .filter(p => p.proyek_default === proyekDipilih)
+      .forEach(p => mandorSet.add(p.nama_mandor));
+
+    const selectMandor = document.getElementById("selectMandor");
+    selectMandor.innerHTML = "";
+    const mandorList = Array.from(mandorSet);
+
+    if (mandorList.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "-- Belum ada mandor di proyek ini --";
+      selectMandor.appendChild(opt);
+    } else {
+      mandorList.forEach(namaMandor => {
+        const opt = document.createElement("option");
+        opt.value = namaMandor;
+        opt.textContent = namaMandor;
+        selectMandor.appendChild(opt);
+      });
+    }
+
+    onMandorChange();
   }
 
-  // 2. RENDER DAFTAR CEKLIS PEKERJA
+  // 3. FILTER BERTINGKAT: SAAT MANDOR DIPILIH -> SARING DAFTAR PEKERJA
+  function onMandorChange() {
+    const proyekDipilih = document.getElementById("selectProyek").value;
+    const mandorDipilih = document.getElementById("selectMandor").value;
+
+    pekerjaTampil = semuaPekerja.filter(
+      p => p.proyek_default === proyekDipilih && p.nama_mandor === mandorDipilih
+    );
+    renderDaftarPekerja();
+  }
+
+  // 4. RENDER DAFTAR PEKERJA
   function renderDaftarPekerja() {
     const container = document.getElementById("workerList");
-    document.getElementById("jumlahPekerja").textContent = daftarPekerja.length;
+    document.getElementById("jumlahPekerja").textContent = pekerjaTampil.length;
     container.innerHTML = "";
 
-    daftarPekerja.forEach((p, idx) => {
+    if (pekerjaTampil.length === 0) {
+      container.innerHTML = `<p style="color:#6b7280; text-align:center;">Tidak ada pekerja aktif pada grup mandor ini.</p>`;
+      return;
+    }
+
+    pekerjaTampil.forEach((p, idx) => {
       const div = document.createElement("div");
       div.className = "worker-item";
+      const isMeal = p.uang_makan === 1;
       div.innerHTML = `
         <div class="worker-header">
-          <span class="worker-name">${escapeHtml(p.nama_pekerja)}</span>
-          <span class="worker-role">${escapeHtml(p.keahlian)}</span>
+          <span class="worker-name">${p.nama_pekerja}</span>
+          <span class="worker-role">${p.keahlian}</span>
         </div>
         <div class="status-group">
           <button type="button" class="status-btn ${p.status_hadir === 1 ? 'active-full' : ''}" onclick="setStatus(${idx}, 1)">Full (1)</button>
           <button type="button" class="status-btn ${p.status_hadir === 0.5 ? 'active-half' : ''}" onclick="setStatus(${idx}, 0.5)">1/2 Hari</button>
           <button type="button" class="status-btn ${p.status_hadir === 0 ? 'active-absent' : ''}" onclick="setStatus(${idx}, 0)">Absen (0)</button>
         </div>
+        <button type="button" class="meal-btn ${isMeal ? 'active-meal' : ''}" onclick="toggleUangMakan(${idx})">
+          ${isMeal ? '✓ Dapat Uang Makan (>18.00 WIB)' : '+ Centang Uang Makan (>18.00 WIB)'}
+        </button>
         <div class="extra-inputs">
-          <input type="number" min="0" max="12" step="0.5" placeholder="Lembur (jam)" value="${p.jam_lembur || ''}" oninput="daftarPekerja[${idx}].jam_lembur = Number(this.value || 0)">
-          <input type="text" placeholder="Catatan singkat (opsional)" value="${escapeHtml(p.catatan)}" oninput="daftarPekerja[${idx}].catatan = this.value">
+          <input type="number" min="0" max="12" step="0.5" placeholder="Lembur (jam)" value="${p.jam_lembur || ''}" oninput="pekerjaTampil[${idx}].jam_lembur = Number(this.value || 0)">
+          <input type="text" placeholder="Catatan singkat (opsional)" value="${p.catatan}" oninput="pekerjaTampil[${idx}].catatan = this.value">
         </div>
       `;
       container.appendChild(div);
@@ -315,11 +385,21 @@
   }
 
   function setStatus(index, nilai) {
-    daftarPekerja[index].status_hadir = nilai;
+    pekerjaTampil[index].status_hadir = nilai;
+    if (nilai === 0) {
+      pekerjaTampil[index].uang_makan = 0;
+      pekerjaTampil[index].jam_lembur = 0;
+    }
     renderDaftarPekerja();
   }
 
-  // 3. KOMPRESI FOTO KAMERA DI SISI FRONT-END (< 300 KB)
+  function toggleUangMakan(index) {
+    if (pekerjaTampil[index].status_hadir === 0) return; // Tidak hadir tidak dapat uang makan
+    pekerjaTampil[index].uang_makan = pekerjaTampil[index].uang_makan === 1 ? 0 : 1;
+    renderDaftarPekerja();
+  }
+
+  // 5. KOMPRESI FOTO KAMERA (< 300 KB)
   function prosesFoto(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -343,7 +423,6 @@
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Kompresi JPEG kualitas 70% agar ukuran di bawah 300 KB
         fotoBase64Terkompresi = canvas.toDataURL("image/jpeg", 0.7);
         const perkiraanKB = Math.round((fotoBase64Terkompresi.length * 3) / 4 / 1024);
 
@@ -357,7 +436,7 @@
     reader.readAsDataURL(file);
   }
 
-  // 4. AMBIL KOORDINAT GPS OTOMATIS
+  // 6. AMBIL KOORDINAT GPS OTOMATIS
   function ambilKoordinatGPS() {
     return new Promise((resolve) => {
       if (!navigator.geolocation) return resolve("GPS tidak didukung");
@@ -369,32 +448,17 @@
     });
   }
 
-  // 5. KIRIM ABSENSI KE GOOGLE SHEETS (POST)
-  let sudahDikirimHariIni = false;
-
+  // 7. KIRIM ABSENSI KE GOOGLE SHEETS (POST)
   async function kirimAbsensi() {
     sembunyikanAlert();
     const namaProyek = document.getElementById("selectProyek").value;
+    const namaMandor = document.getElementById("selectMandor").value;
     const namaOperator = document.getElementById("inputOperator").value.trim();
 
-    if (!namaOperator) return tampilkanAlert("Nama Mandor / Operator wajib diisi.", "error");
+    if (!namaMandor) return tampilkanAlert("Pilih Mandor / Grup terlebih dahulu.", "error");
+    if (!namaOperator) return tampilkanAlert("Nama Pelaksana Lapangan / Operator wajib diisi.", "error");
+    if (pekerjaTampil.length === 0) return tampilkanAlert("Tidak ada pekerja untuk dikirim.", "error");
     if (!fotoBase64Terkompresi) return tampilkanAlert("Silakan ambil foto kelompok pekerja terlebih dahulu.", "error");
-
-    // Konfirmasi ringkasan sebelum kirim
-    const jmlHadir = daftarPekerja.filter(p => p.status_hadir === 1).length;
-    const jmlSetengah = daftarPekerja.filter(p => p.status_hadir === 0.5).length;
-    const jmlAbsen = daftarPekerja.filter(p => p.status_hadir === 0).length;
-
-    let pesanKonfirmasi = `Kirim absensi ${daftarPekerja.length} pekerja?\n\n`;
-    pesanKonfirmasi += `✅ Hadir Full: ${jmlHadir} orang\n`;
-    pesanKonfirmasi += `⚠️ Setengah Hari: ${jmlSetengah} orang\n`;
-    pesanKonfirmasi += `❌ Absen: ${jmlAbsen} orang`;
-
-    if (sudahDikirimHariIni) {
-      pesanKonfirmasi += `\n\n⚠️ PERHATIAN: Anda sudah pernah mengirim absensi hari ini. Data ini akan DITAMBAHKAN (bukan menimpa) ke log yang sudah ada.`;
-    }
-
-    if (!confirm(pesanKonfirmasi)) return;
 
     const btn = document.getElementById("btnKirim");
     btn.disabled = true;
@@ -407,10 +471,11 @@
         pin: currentPin,
         action: "kirim_absensi",
         nama_proyek: namaProyek,
+        nama_mandor: namaMandor,
         nama_operator: namaOperator,
         koordinat_gps: gps,
         foto_base64: fotoBase64Terkompresi,
-        daftar_absensi: daftarPekerja
+        daftar_absensi: pekerjaTampil
       };
 
       const res = await fetch(URL_GAS, {
@@ -421,9 +486,10 @@
 
       const hasil = await res.json();
       if (hasil.status === "success") {
-        sudahDikirimHariIni = true;
-        tampilkanAlert("✅ " + hasil.message, "success");
-        // Foto TIDAK di-reset agar bisa dipakai lagi jika ada pekerja baru ditambahkan
+        tampilkanAlert(hasil.message, "success");
+        fotoBase64Terkompresi = "";
+        document.getElementById("previewFoto").style.display = "none";
+        document.getElementById("infoFoto").textContent = "";
       } else {
         tampilkanAlert(hasil.message || "Gagal menyimpan absensi.", "error");
       }
@@ -431,18 +497,27 @@
       tampilkanAlert("Pengiriman gagal. Sinyal terputus, silakan coba tekan tombol Kirim kembali.", "error");
     } finally {
       btn.disabled = false;
-      btn.textContent = "Kirim Absensi Sekarang";
+      btn.textContent = "Kirim Absensi Grup Ini";
     }
   }
 
-  // 6. TAMBAH PEKERJA BARU DI TEMPAT
-  function bukaModalTambah() { document.getElementById("modalTambah").style.display = "flex"; }
-  function tutupModalTambah() { document.getElementById("modalTambah").style.display = "none"; }
+  // 8. TAMBAH PEKERJA BARU OTOMATIS MASUK KE PROYEK & MANDOR TERPILIH
+  function bukaModalTambah() {
+    const proyek = document.getElementById("selectProyek").value;
+    const mandor = document.getElementById("selectMandor").value;
+    document.getElementById("infoTargetTambah").textContent = `Akan ditambahkan ke: ${proyek} (${mandor || "Tanpa Mandor"})`;
+    document.getElementById("modalTambah").style.display = "flex";
+  }
+
+  function tutupModalTambah() {
+    document.getElementById("modalTambah").style.display = "none";
+  }
 
   async function simpanPekerjaBaru() {
     const nama = document.getElementById("baruNama").value.trim();
     const keahlian = document.getElementById("baruKeahlian").value;
     const proyek = document.getElementById("selectProyek").value;
+    const mandor = document.getElementById("selectMandor").value;
 
     if (!nama) return alert("Nama pekerja wajib diisi.");
 
@@ -459,22 +534,24 @@
           action: "tambah_pekerja",
           nama_pekerja: nama,
           keahlian: keahlian,
-          proyek_default: proyek
+          proyek_default: proyek,
+          nama_mandor: mandor
         })
       });
 
       const hasil = await res.json();
       if (hasil.status === "success") {
-        daftarPekerja.push({
+        semuaPekerja.push({
           ...hasil.pekerja,
           status_hadir: 1,
           jam_lembur: 0,
+          uang_makan: 0,
           catatan: ""
         });
-        renderDaftarPekerja();
+        onMandorChange();
         document.getElementById("baruNama").value = "";
         tutupModalTambah();
-        tampilkanAlert(`Pekerja "${nama}" berhasil ditambahkan ke daftar.`, "success");
+        tampilkanAlert(`Pekerja "${nama}" berhasil ditambahkan ke grup ${mandor}.`, "success");
       } else {
         alert(hasil.message || "Gagal menambah pekerja.");
       }
