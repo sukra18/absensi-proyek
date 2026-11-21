@@ -279,6 +279,13 @@
     }
   }
 
+  // Helper: escape HTML agar input pengguna tidak dieksekusi sebagai HTML/script
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // 2. RENDER DAFTAR CEKLIS PEKERJA
   function renderDaftarPekerja() {
     const container = document.getElementById("workerList");
@@ -290,8 +297,8 @@
       div.className = "worker-item";
       div.innerHTML = `
         <div class="worker-header">
-          <span class="worker-name">${p.nama_pekerja}</span>
-          <span class="worker-role">${p.keahlian}</span>
+          <span class="worker-name">${escapeHtml(p.nama_pekerja)}</span>
+          <span class="worker-role">${escapeHtml(p.keahlian)}</span>
         </div>
         <div class="status-group">
           <button type="button" class="status-btn ${p.status_hadir === 1 ? 'active-full' : ''}" onclick="setStatus(${idx}, 1)">Full (1)</button>
@@ -300,7 +307,7 @@
         </div>
         <div class="extra-inputs">
           <input type="number" min="0" max="12" step="0.5" placeholder="Lembur (jam)" value="${p.jam_lembur || ''}" oninput="daftarPekerja[${idx}].jam_lembur = Number(this.value || 0)">
-          <input type="text" placeholder="Catatan singkat (opsional)" value="${p.catatan}" oninput="daftarPekerja[${idx}].catatan = this.value">
+          <input type="text" placeholder="Catatan singkat (opsional)" value="${escapeHtml(p.catatan)}" oninput="daftarPekerja[${idx}].catatan = this.value">
         </div>
       `;
       container.appendChild(div);
@@ -363,6 +370,8 @@
   }
 
   // 5. KIRIM ABSENSI KE GOOGLE SHEETS (POST)
+  let sudahDikirimHariIni = false;
+
   async function kirimAbsensi() {
     sembunyikanAlert();
     const namaProyek = document.getElementById("selectProyek").value;
@@ -370,6 +379,22 @@
 
     if (!namaOperator) return tampilkanAlert("Nama Mandor / Operator wajib diisi.", "error");
     if (!fotoBase64Terkompresi) return tampilkanAlert("Silakan ambil foto kelompok pekerja terlebih dahulu.", "error");
+
+    // Konfirmasi ringkasan sebelum kirim
+    const jmlHadir = daftarPekerja.filter(p => p.status_hadir === 1).length;
+    const jmlSetengah = daftarPekerja.filter(p => p.status_hadir === 0.5).length;
+    const jmlAbsen = daftarPekerja.filter(p => p.status_hadir === 0).length;
+
+    let pesanKonfirmasi = `Kirim absensi ${daftarPekerja.length} pekerja?\n\n`;
+    pesanKonfirmasi += `✅ Hadir Full: ${jmlHadir} orang\n`;
+    pesanKonfirmasi += `⚠️ Setengah Hari: ${jmlSetengah} orang\n`;
+    pesanKonfirmasi += `❌ Absen: ${jmlAbsen} orang`;
+
+    if (sudahDikirimHariIni) {
+      pesanKonfirmasi += `\n\n⚠️ PERHATIAN: Anda sudah pernah mengirim absensi hari ini. Data ini akan DITAMBAHKAN (bukan menimpa) ke log yang sudah ada.`;
+    }
+
+    if (!confirm(pesanKonfirmasi)) return;
 
     const btn = document.getElementById("btnKirim");
     btn.disabled = true;
@@ -396,11 +421,9 @@
 
       const hasil = await res.json();
       if (hasil.status === "success") {
-        tampilkanAlert(hasil.message, "success");
-        // Reset foto agar tidak terkirim ulang secara tidak sengaja
-        fotoBase64Terkompresi = "";
-        document.getElementById("previewFoto").style.display = "none";
-        document.getElementById("infoFoto").textContent = "";
+        sudahDikirimHariIni = true;
+        tampilkanAlert("✅ " + hasil.message, "success");
+        // Foto TIDAK di-reset agar bisa dipakai lagi jika ada pekerja baru ditambahkan
       } else {
         tampilkanAlert(hasil.message || "Gagal menyimpan absensi.", "error");
       }
