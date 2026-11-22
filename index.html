@@ -49,6 +49,13 @@
       margin-bottom: 12px;
     }
 
+    input[readonly] {
+      background: #e5e7eb;
+      color: #374151;
+      font-weight: 700;
+      cursor: not-allowed;
+    }
+
     button {
       width: 100%;
       min-height: 50px;
@@ -65,6 +72,10 @@
     .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
     .btn-secondary { background: #e5e7eb; color: #111827; border: 2px solid #9ca3af; }
     .btn-success { background: var(--success); color: #fff; }
+    .btn-small { width: auto; min-height: 38px; padding: 6px 12px; font-size: 13px; }
+
+    .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+    .label-row label { margin-bottom: 0; }
 
     /* KARTU PEKERJA */
     .worker-item {
@@ -78,7 +89,6 @@
     .worker-name { font-weight: 800; font-size: 17px; color: #000; }
     .worker-role { font-size: 13px; font-weight: 700; background: #e5e7eb; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
 
-    /* TOMBOL STATUS HADIR */
     .status-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
     .status-btn {
       min-height: 46px;
@@ -94,7 +104,6 @@
     .status-btn.active-half { background: #d97706; color: #fff; border-color: #d97706; }
     .status-btn.active-absent { background: #b91c1c; color: #fff; border-color: #b91c1c; }
 
-    /* TOMBOL UANG MAKAN (>18.00 WIB) */
     .meal-btn {
       min-height: 44px;
       margin-bottom: 10px;
@@ -116,7 +125,6 @@
     .extra-inputs { display: grid; grid-template-columns: 115px 1fr; gap: 8px; }
     .extra-inputs input { margin-bottom: 0; min-height: 42px; font-size: 14px; }
 
-    /* PREVIEW FOTO */
     #previewFoto {
       width: 100%;
       max-height: 240px;
@@ -127,7 +135,6 @@
       display: none;
     }
 
-    /* NOTIFIKASI */
     .alert {
       padding: 16px;
       border-radius: 10px;
@@ -170,18 +177,21 @@
       <label for="selectProyek">1. Pilih Proyek / Lokasi</label>
       <select id="selectProyek" onchange="onProyekChange()"></select>
 
-      <label for="selectMandor">2. Pilih Mandor / Grup</label>
-      <select id="selectMandor" onchange="onMandorChange()"></select>
+      <label for="inputOperator">2. Nama Pelaksana Lapangan (Diatur Admin Kantor)</label>
+      <input type="text" id="inputOperator" readonly>
 
-      <label for="inputOperator">3. Nama Pelaksana Lapangan / Operator</label>
-      <input type="text" id="inputOperator" placeholder="Contoh: Rizal Ahda (Pelaksana)">
+      <div class="label-row">
+        <label for="selectMandor">3. Pilih Mandor / Grup</label>
+        <button type="button" class="btn-secondary btn-small" onclick="bukaModalMandor()">+ Mandor Baru</button>
+      </div>
+      <select id="selectMandor" onchange="onMandorChange()"></select>
     </div>
 
     <!-- DAFTAR PEKERJA TERSARING -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h2 style="margin:0;">Daftar Pekerja (<span id="jumlahPekerja">0</span>)</h2>
-        <button type="button" class="btn-secondary" style="width:auto; min-height:40px; padding:6px 12px; font-size:14px;" onclick="bukaModalTambah()">+ Pekerja Baru</button>
+        <button type="button" class="btn-secondary btn-small" onclick="bukaModalTambah()">+ Pekerja Baru</button>
       </div>
       <div id="workerList"></div>
     </div>
@@ -196,8 +206,23 @@
       <p id="infoFoto" style="font-size:13px; color:#15803d; font-weight:700; margin:8px 0 0 0;"></p>
     </div>
 
-    <!-- TOMBOL KIRIM -->
     <button id="btnKirim" class="btn-success" onclick="kirimAbsensi()">Kirim Absensi Grup Ini</button>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH MANDOR BARU -->
+<div id="modalMandor" class="modal-backdrop">
+  <div class="modal-content">
+    <h2>Tambah Mandor / Grup Baru</h2>
+    <p id="infoTargetMandor" style="font-size:13px; color:#1d4ed8; font-weight:700; margin-top:0;"></p>
+
+    <label for="baruNamaMandor">Nama Mandor Baru</label>
+    <input type="text" id="baruNamaMandor" placeholder="Contoh: Mandor Joko">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+      <button type="button" class="btn-secondary" onclick="tutupModalMandor()">Batal</button>
+      <button type="button" id="btnSimpanMandor" class="btn-primary" onclick="simpanMandorBaru()">Simpan</button>
+    </div>
   </div>
 </div>
 
@@ -213,7 +238,7 @@
     <label for="baruKeahlian">Keahlian / Jabatan</label>
     <select id="baruKeahlian">
       <option value="Kepala Tukang">Kepala Tukang</option>
-       <option value="Tukang Batu">Tukang Batu</option>
+      <option value="Tukang Batu">Tukang Batu</option>
       <option value="Tukang Besi">Tukang Besi</option>
       <option value="Tukang Kayu">Tukang Kayu</option>
       <option value="Kenek">Kenek</option>
@@ -231,9 +256,10 @@
   // =========================================================================
   // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA (BERAKHIRAN /exec)
   // =========================================================================
-  const URL_GAS = "https://script.google.com/macros/s/AKfycbwua78S_XZTd3mTHLQ-GY9NeAkiORMa2Xosi0e4pbRj0eOykHRKKX6Ow_3fKd-Y6Ho7/exec";
+  const URL_GAS = "https://script.google.com/macros/s/AKfycbws5ZAyiHw5wLzjnHmuRXxYej-sLFlZ2qR9UsY6zsyQRDgdqhCWOYbSNhVBKq-hrdI/exec";
 
   let currentPin = "";
+  let daftarProyek = [];      // [{ nama_proyek, pelaksana_lapangan }]
   let semuaPekerja = [];      // Seluruh pekerja aktif dari Master_Pekerja
   let pekerjaTampil = [];     // Pekerja tersaring sesuai Proyek + Mandor terpilih
   let fotoBase64Terkompresi = "";
@@ -254,7 +280,7 @@
     document.getElementById("alertBox").style.display = "none";
   }
 
-  // 1. VERIFIKASI PIN & TARIK DATA MASTER
+  // 1. VERIFIKASI PIN & TARIK MASTER PROYEK + MASTER PEKERJA
   async function verifikasiPin() {
     sembunyikanAlert();
     const pin = document.getElementById("inputPin").value.trim();
@@ -274,26 +300,24 @@
       }
 
       currentPin = pin;
-      semuaPekerja = data.daftar_pekerja.map(p => ({
+      daftarProyek = data.daftar_proyek || [];
+      semuaPekerja = (data.daftar_pekerja || []).map(p => ({
         ...p,
         status_hadir: 1,
         jam_lembur: 0,
-        uang_makan: 0, // Default 0 (belum lewat 18.00 WIB)
+        uang_makan: 0,
         catatan: ""
       }));
 
-      // Isi Dropdown Proyek
       const selectProyek = document.getElementById("selectProyek");
       selectProyek.innerHTML = "";
-      const proyekList = data.daftar_proyek.length ? data.daftar_proyek : ["Proyek Utama"];
-      proyekList.forEach(nama => {
+      daftarProyek.forEach(item => {
         const opt = document.createElement("option");
-        opt.value = nama;
-        opt.textContent = nama;
+        opt.value = item.nama_proyek;
+        opt.textContent = item.nama_proyek;
         selectProyek.appendChild(opt);
       });
 
-      // Jalankan filter bertingkat: Proyek -> Mandor -> Pekerja
       onProyekChange();
 
       document.getElementById("pinSection").classList.add("hidden");
@@ -307,14 +331,19 @@
     }
   }
 
-  // 2. FILTER BERTINGKAT: SAAT PROYEK DIPILIH -> SARING DAFTAR MANDOR
-  function onProyekChange() {
+  // 2. SAAT PROYEK DIPILIH -> KUNCI NAMA PELAKSANA & SARING MANDOR
+  function onProyekChange(selectedMandorOverride = "") {
     const proyekDipilih = document.getElementById("selectProyek").value;
-    const mandorSet = new Set();
 
+    // Isi & kunci Nama Pelaksana Lapangan otomatis dari Master_Proyek
+    const infoProyek = daftarProyek.find(p => p.nama_proyek === proyekDipilih);
+    document.getElementById("inputOperator").value = infoProyek ? infoProyek.pelaksana_lapangan : "-";
+
+    // Kumpulkan daftar mandor di proyek tersebut
+    const mandorSet = new Set();
     semuaPekerja
       .filter(p => p.proyek_default === proyekDipilih)
-      .forEach(p => mandorSet.add(p.nama_mandor));
+      .forEach(p => { if (p.nama_mandor) mandorSet.add(p.nama_mandor); });
 
     const selectMandor = document.getElementById("selectMandor");
     selectMandor.innerHTML = "";
@@ -323,7 +352,7 @@
     if (mandorList.length === 0) {
       const opt = document.createElement("option");
       opt.value = "";
-      opt.textContent = "-- Belum ada mandor di proyek ini --";
+      opt.textContent = "-- Belum ada mandor (klik + Mandor Baru) --";
       selectMandor.appendChild(opt);
     } else {
       mandorList.forEach(namaMandor => {
@@ -332,12 +361,15 @@
         opt.textContent = namaMandor;
         selectMandor.appendChild(opt);
       });
+      if (selectedMandorOverride && mandorList.includes(selectedMandorOverride)) {
+        selectMandor.value = selectedMandorOverride;
+      }
     }
 
     onMandorChange();
   }
 
-  // 3. FILTER BERTINGKAT: SAAT MANDOR DIPILIH -> SARING DAFTAR PEKERJA
+  // 3. SAAT MANDOR DIPILIH -> SARING DAFTAR PEKERJA
   function onMandorChange() {
     const proyekDipilih = document.getElementById("selectProyek").value;
     const mandorDipilih = document.getElementById("selectMandor").value;
@@ -355,7 +387,7 @@
     container.innerHTML = "";
 
     if (pekerjaTampil.length === 0) {
-      container.innerHTML = `<p style="color:#6b7280; text-align:center;">Tidak ada pekerja aktif pada grup mandor ini.</p>`;
+      container.innerHTML = `<p style="color:#6b7280; text-align:center;">Belum ada pekerja di grup ini. Klik <b>+ Pekerja Baru</b> untuk mendaftarkan.</p>`;
       return;
     }
 
@@ -374,7 +406,7 @@
           <button type="button" class="status-btn ${p.status_hadir === 0 ? 'active-absent' : ''}" onclick="setStatus(${idx}, 0)">Absen (0)</button>
         </div>
         <button type="button" class="meal-btn ${isMeal ? 'active-meal' : ''}" onclick="toggleUangMakan(${idx})">
-          ${isMeal ? '✓ Dapat Uang Makan (>18.00 WIB)' : '+ Centang Uang Makan (>18.00 WIB)'}
+          ${isMeal ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)'}
         </button>
         <div class="extra-inputs">
           <input type="number" min="0" max="12" step="0.5" placeholder="Lembur (jam)" value="${p.jam_lembur || ''}" oninput="pekerjaTampil[${idx}].jam_lembur = Number(this.value || 0)">
@@ -395,7 +427,7 @@
   }
 
   function toggleUangMakan(index) {
-    if (pekerjaTampil[index].status_hadir === 0) return; // Tidak hadir tidak dapat uang makan
+    if (pekerjaTampil[index].status_hadir === 0) return;
     pekerjaTampil[index].uang_makan = pekerjaTampil[index].uang_makan === 1 ? 0 : 1;
     renderDaftarPekerja();
   }
@@ -421,8 +453,7 @@
 
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
 
         fotoBase64Terkompresi = canvas.toDataURL("image/jpeg", 0.7);
         const perkiraanKB = Math.round((fotoBase64Terkompresi.length * 3) / 4 / 1024);
@@ -437,7 +468,6 @@
     reader.readAsDataURL(file);
   }
 
-  // 6. AMBIL KOORDINAT GPS OTOMATIS
   function ambilKoordinatGPS() {
     return new Promise((resolve) => {
       if (!navigator.geolocation) return resolve("GPS tidak didukung");
@@ -449,15 +479,14 @@
     });
   }
 
-  // 7. KIRIM ABSENSI KE GOOGLE SHEETS (POST)
+  // 6. KIRIM ABSENSI KE GOOGLE SHEETS
   async function kirimAbsensi() {
     sembunyikanAlert();
     const namaProyek = document.getElementById("selectProyek").value;
     const namaMandor = document.getElementById("selectMandor").value;
     const namaOperator = document.getElementById("inputOperator").value.trim();
 
-    if (!namaMandor) return tampilkanAlert("Pilih Mandor / Grup terlebih dahulu.", "error");
-    if (!namaOperator) return tampilkanAlert("Nama Pelaksana Lapangan / Operator wajib diisi.", "error");
+    if (!namaMandor) return tampilkanAlert("Pilih atau tambahkan Mandor / Grup terlebih dahulu.", "error");
     if (pekerjaTampil.length === 0) return tampilkanAlert("Tidak ada pekerja untuk dikirim.", "error");
     if (!fotoBase64Terkompresi) return tampilkanAlert("Silakan ambil foto kelompok pekerja terlebih dahulu.", "error");
 
@@ -467,22 +496,19 @@
 
     try {
       const gps = await ambilKoordinatGPS();
-
-      const payload = {
-        pin: currentPin,
-        action: "kirim_absensi",
-        nama_proyek: namaProyek,
-        nama_mandor: namaMandor,
-        nama_operator: namaOperator,
-        koordinat_gps: gps,
-        foto_base64: fotoBase64Terkompresi,
-        daftar_absensi: pekerjaTampil
-      };
-
       const res = await fetch(URL_GAS, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          pin: currentPin,
+          action: "kirim_absensi",
+          nama_proyek: namaProyek,
+          nama_mandor: namaMandor,
+          nama_operator: namaOperator,
+          koordinat_gps: gps,
+          foto_base64: fotoBase64Terkompresi,
+          daftar_absensi: pekerjaTampil
+        })
       });
 
       const hasil = await res.json();
@@ -502,11 +528,72 @@
     }
   }
 
-  // 8. TAMBAH PEKERJA BARU OTOMATIS MASUK KE PROYEK & MANDOR TERPILIH
+  // 7. TAMBAH MANDOR BARU
+  function bukaModalMandor() {
+    const proyek = document.getElementById("selectProyek").value;
+    document.getElementById("infoTargetMandor").textContent = `Proyek: ${proyek}`;
+    document.getElementById("modalMandor").style.display = "flex";
+  }
+
+  function tutupModalMandor() {
+    document.getElementById("modalMandor").style.display = "none";
+  }
+
+  async function simpanMandorBaru() {
+    const namaMandor = document.getElementById("baruNamaMandor").value.trim();
+    const proyek = document.getElementById("selectProyek").value;
+
+    if (!namaMandor) return alert("Nama Mandor wajib diisi.");
+
+    const btn = document.getElementById("btnSimpanMandor");
+    btn.disabled = true;
+    btn.textContent = "Menyimpan...";
+
+    try {
+      const res = await fetch(URL_GAS, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          pin: currentPin,
+          action: "tambah_pekerja",
+          nama_pekerja: namaMandor,
+          keahlian: "Mandor",
+          proyek_default: proyek,
+          nama_mandor: namaMandor
+        })
+      });
+
+      const hasil = await res.json();
+      if (hasil.status === "success") {
+        semuaPekerja.push({
+          ...hasil.pekerja,
+          status_hadir: 1,
+          jam_lembur: 0,
+          uang_makan: 0,
+          catatan: ""
+        });
+        document.getElementById("baruNamaMandor").value = "";
+        tutupModalMandor();
+        // Otomatis pilih mandor baru tersebut di dropdown
+        onProyekChange(namaMandor);
+        tampilkanAlert(`Mandor "${namaMandor}" berhasil ditambahkan. Silakan tambahkan pekerja di bawah grup ini.`, "success");
+      } else {
+        alert(hasil.message || "Gagal menambah mandor.");
+      }
+    } catch (err) {
+      alert("Gagal terhubung ke server. Periksa sinyal internet.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Simpan";
+    }
+  }
+
+  // 8. TAMBAH PEKERJA BARU DI BAWAH PROYEK & MANDOR TERPILIH
   function bukaModalTambah() {
     const proyek = document.getElementById("selectProyek").value;
     const mandor = document.getElementById("selectMandor").value;
-    document.getElementById("infoTargetTambah").textContent = `Akan ditambahkan ke: ${proyek} (${mandor || "Tanpa Mandor"})`;
+    if (!mandor) return tampilkanAlert("Tambahkan Mandor Baru terlebih dahulu sebelum menambah pekerja.", "error");
+    document.getElementById("infoTargetTambah").textContent = `Akan ditambahkan ke: ${proyek} (${mandor})`;
     document.getElementById("modalTambah").style.display = "flex";
   }
 
@@ -552,7 +639,7 @@
         onMandorChange();
         document.getElementById("baruNama").value = "";
         tutupModalTambah();
-        tampilkanAlert(`Pekerja "${nama}" berhasil ditambahkan ke grup ${mandor}.`, "success");
+        tampilkanAlert(`Pekerja "${nama}" (${keahlian}) berhasil ditambahkan ke grup ${mandor}.`, "success");
       } else {
         alert(hasil.message || "Gagal menambah pekerja.");
       }
