@@ -53,14 +53,25 @@ async function verifikasiPin() {
 
     currentPin = pin;
     daftarProyek = data.daftar_proyek || [];
-    semuaPekerja = (data.daftar_pekerja || []).map(p => ({
-      ...p,
-      status_hadir: p.status_hadir !== undefined ? p.status_hadir : 1,
-      jam_lembur: p.jam_lembur || 0,
-      uang_makan: p.uang_makan || 0,
-      catatan: p.catatan || "",
-      sudah_absen: !!p.sudah_absen
-    }));
+    semuaPekerja = (data.daftar_pekerja || []).map(p => {
+      const sh = p.status_hadir !== undefined ? p.status_hadir : 1;
+      const jl = Number(p.jam_lembur || 0);
+      const um = Number(p.uang_makan || 0);
+      const ct = p.catatan || "";
+      const sudah = !!p.sudah_absen;
+      return {
+        ...p,
+        status_hadir: sh,
+        jam_lembur: jl,
+        uang_makan: um,
+        catatan: ct,
+        sudah_absen: sudah,
+        _orig_status: sudah ? sh : null,
+        _orig_lembur: sudah ? jl : null,
+        _orig_makan: sudah ? um : null,
+        _orig_catatan: sudah ? ct : null
+      };
+    });
 
     $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${p.nama_proyek}">${p.nama_proyek}</option>`).join('');
     onProyekChange();
@@ -99,6 +110,45 @@ function onMandorChange() {
   renderDaftarPekerja();
 }
 
+// Helper: Cek apakah pekerja memiliki perubahan data dibanding data awal hari ini
+function cekStatusPerubahan(p) {
+  if (!p.sudah_absen) return "baru";
+  const changed = (
+    p.status_hadir !== p._orig_status ||
+    p.jam_lembur !== p._orig_lembur ||
+    p.uang_makan !== p._orig_makan ||
+    (p.catatan || "").trim() !== (p._orig_catatan || "").trim()
+  );
+  return changed ? "ubah" : "tetap";
+}
+
+function isWorkerChanged(p) {
+  return cekStatusPerubahan(p) !== "tetap";
+}
+
+function updateBadgeKartu(i) {
+  const p = pekerjaTampil[i];
+  const card = document.querySelector(`.worker-item[data-idx="${i}"]`);
+  if (!card) return;
+  const st = cekStatusPerubahan(p);
+  const badge = card.querySelector('.badge-status');
+  if (badge) {
+    if (st === "baru") {
+      badge.className = "badge-status badge-pending";
+      badge.textContent = "Belum Absen";
+      card.className = "worker-item";
+    } else if (st === "ubah") {
+      badge.className = "badge-status badge-modified";
+      badge.textContent = "✎ Ada Perubahan";
+      card.className = "worker-item is-modified";
+    } else {
+      badge.className = "badge-status badge-done";
+      badge.textContent = "✓ Sudah Absen";
+      card.className = "worker-item is-done";
+    }
+  }
+}
+
 // 3. Render Daftar Pekerja dengan Indikator Status Absen
 function renderDaftarPekerja() {
   const list = $('workerList');
@@ -109,16 +159,23 @@ function renderDaftarPekerja() {
     return;
   }
 
-  list.innerHTML = pekerjaTampil.map((p, i) => `
-    <div class="worker-item ${p.sudah_absen ? 'is-done' : ''}" data-idx="${i}">
+  list.innerHTML = pekerjaTampil.map((p, i) => {
+    const st = cekStatusPerubahan(p);
+    let badgeClass = "badge-done", badgeText = "✓ Sudah Absen", itemClass = "is-done";
+    if (st === "baru") {
+      badgeClass = "badge-pending"; badgeText = "Belum Absen"; itemClass = "";
+    } else if (st === "ubah") {
+      badgeClass = "badge-modified"; badgeText = "✎ Ada Perubahan"; itemClass = "is-modified";
+    }
+
+    return `
+    <div class="worker-item ${itemClass}" data-idx="${i}">
       <div class="flex-between">
         <div>
           <span class="worker-name">${p.nama_pekerja}</span>
           <span class="worker-role">${p.keahlian}</span>
         </div>
-        <span class="${p.sudah_absen ? 'badge-done' : 'badge-pending'}">
-          ${p.sudah_absen ? '✓ Sudah Absen' : 'Belum Absen'}
-        </span>
+        <span class="badge-status ${badgeClass}">${badgeText}</span>
       </div>
       <div class="status-group">
         <button type="button" class="status-btn ${p.status_hadir === 1 ? 'active-full' : ''}" onclick="setStatus(${i}, 1, this)">Full (1)</button>
@@ -129,11 +186,12 @@ function renderDaftarPekerja() {
         ${p.uang_makan === 1 ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)'}
       </button>
       <div class="extra-inputs">
-        <input type="number" min="0" max="12" step="0.5" placeholder="Lembur (jam)" value="${p.jam_lembur || ''}" oninput="pekerjaTampil[${i}].jam_lembur = Number(this.value || 0)">
-        <input type="text" placeholder="Catatan singkat (opsional)" value="${p.catatan}" oninput="pekerjaTampil[${i}].catatan = this.value">
+        <input type="number" min="0" max="12" step="0.5" placeholder="Lembur (jam)" value="${p.jam_lembur || ''}" oninput="pekerjaTampil[${i}].jam_lembur = Number(this.value || 0); updateBadgeKartu(${i});">
+        <input type="text" placeholder="Catatan singkat (opsional)" value="${p.catatan}" oninput="pekerjaTampil[${i}].catatan = this.value; updateBadgeKartu(${i});">
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // Update Status & Meal Tanpa Re-render Total
@@ -154,6 +212,8 @@ function setStatus(i, val, btn) {
     const numInput = card.querySelector('input[type="number"]');
     if (numInput) numInput.value = '';
   }
+
+  updateBadgeKartu(i);
 }
 
 function toggleMakan(i, btn) {
@@ -162,6 +222,7 @@ function toggleMakan(i, btn) {
   p.uang_makan = p.uang_makan === 1 ? 0 : 1;
   btn.className = `meal-btn ${p.uang_makan ? 'active-meal' : ''}`;
   btn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)';
+  updateBadgeKartu(i);
 }
 
 // 4. Kompresi Foto Kamera
@@ -200,28 +261,38 @@ function getGPS() {
   });
 }
 
-// 5. Tampilkan Konfirmasi Sebelum Kirim
+// 5. Tampilkan Konfirmasi Sebelum Kirim (Hanya Kirim Data Baru atau yang Berubah)
 async function kirimAbsensi() {
   $('alertBox').style.display = 'none';
   const mandor = $('selectMandor').value;
   if (!mandor) return notif("Pilih atau tambahkan Mandor terlebih dahulu.", false);
-  if (!pekerjaTampil.length) return notif("Tidak ada pekerja untuk dikirim.", false);
+  if (!pekerjaTampil.length) return notif("Tidak ada pekerja di grup ini.", false);
+
+  const pekerjaDikirim = pekerjaTampil.filter(isWorkerChanged);
+  if (!pekerjaDikirim.length) {
+    return notif("Semua pekerja di grup ini sudah diabsen dan tidak ada data yang diubah.", true);
+  }
+
   // Foto hanya wajib jika ada pekerja yang BELUM pernah diabsen hari ini
-  const adaPekerjaBaru = pekerjaTampil.some(p => !p.sudah_absen);
+  const adaPekerjaBaru = pekerjaDikirim.some(p => !p.sudah_absen);
   if (adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
 
-  // Hitung ringkasan
-  const jumlahFull     = pekerjaTampil.filter(p => p.status_hadir === 1).length;
-  const jumlahSetengah = pekerjaTampil.filter(p => p.status_hadir === 0.5).length;
-  const jumlahAbsen    = pekerjaTampil.filter(p => p.status_hadir === 0).length;
-  const totalLembur    = pekerjaTampil.reduce((s, p) => s + (Number(p.jam_lembur) || 0), 0);
-  const jumlahMakan    = pekerjaTampil.filter(p => p.uang_makan === 1).length;
+  // Hitung ringkasan khusus pekerja yang dikirim
+  const jumlahBaru     = pekerjaDikirim.filter(p => !p.sudah_absen).length;
+  const jumlahKoreksi  = pekerjaDikirim.filter(p => p.sudah_absen).length;
+  const jumlahFull     = pekerjaDikirim.filter(p => p.status_hadir === 1).length;
+  const jumlahSetengah = pekerjaDikirim.filter(p => p.status_hadir === 0.5).length;
+  const jumlahAbsen    = pekerjaDikirim.filter(p => p.status_hadir === 0).length;
+  const totalLembur    = pekerjaDikirim.reduce((s, p) => s + (Number(p.jam_lembur) || 0), 0);
+  const jumlahMakan    = pekerjaDikirim.filter(p => p.uang_makan === 1).length;
 
   $('konfirmasiRingkasan').innerHTML = `
     <div class="konfirmasi-info">
       <div class="konfirmasi-row"><span>Proyek</span><strong>${$('selectProyek').value}</strong></div>
       <div class="konfirmasi-row"><span>Mandor</span><strong>${mandor}</strong></div>
-      <div class="konfirmasi-row"><span>Total Pekerja</span><strong>${pekerjaTampil.length} orang</strong></div>
+      <div class="konfirmasi-row"><span>Pekerja yang Dikirim</span><strong>${pekerjaDikirim.length} orang</strong></div>
+      ${jumlahBaru > 0 ? `<div class="konfirmasi-row"><span>• Pekerja Baru (Belum Absen)</span><strong style="color:var(--primary);">${jumlahBaru} orang</strong></div>` : ''}
+      ${jumlahKoreksi > 0 ? `<div class="konfirmasi-row"><span>• Koreksi/Perubahan Data</span><strong style="color:#d97706;">${jumlahKoreksi} orang</strong></div>` : ''}
     </div>
     <div class="konfirmasi-info">
       <div class="konfirmasi-row"><span>✅ Full (1 hari)</span><span class="badge-full">${jumlahFull} orang</span></div>
@@ -238,6 +309,8 @@ async function kirimAbsensi() {
 async function kirimAbsensiProses() {
   $('modalKonfirmasi').close();
   const mandor = $('selectMandor').value;
+  const pekerjaDikirim = pekerjaTampil.filter(isWorkerChanged);
+  if (!pekerjaDikirim.length) return;
 
   const btn = $('btnKirim');
   btn.disabled = true; btn.textContent = "Mengirim absensi...";
@@ -250,7 +323,7 @@ async function kirimAbsensiProses() {
       nama_operator: $('inputOperator').value.trim(),
       koordinat_gps: gps,
       foto_base64: fotoBase64,
-      daftar_absensi: pekerjaTampil
+      daftar_absensi: pekerjaDikirim
     });
 
     if (res.status === "success") {
@@ -259,8 +332,14 @@ async function kirimAbsensiProses() {
       $('previewFoto').style.display = 'none';
       $('infoFoto').textContent = "";
 
-      // Tandai seluruh pekerja yang dikirim sebagai "Sudah Absen"
-      pekerjaTampil.forEach(p => p.sudah_absen = true);
+      // Tandai seluruh pekerja yang dikirim sebagai "Sudah Absen" & catat baseline
+      pekerjaDikirim.forEach(p => {
+        p.sudah_absen = true;
+        p._orig_status = p.status_hadir;
+        p._orig_lembur = p.jam_lembur;
+        p._orig_makan = p.uang_makan;
+        p._orig_catatan = p.catatan;
+      });
       renderDaftarPekerja();
     } else {
       notif(res.message || "Gagal menyimpan absensi.", false);
@@ -308,7 +387,18 @@ async function simpanPekerja() {
     });
 
     if (res.status === "success") {
-      semuaPekerja.push({ ...res.pekerja, status_hadir: 1, jam_lembur: 0, uang_makan: 0, catatan: "", sudah_absen: false });
+      semuaPekerja.push({
+        ...res.pekerja,
+        status_hadir: 1,
+        jam_lembur: 0,
+        uang_makan: 0,
+        catatan: "",
+        sudah_absen: false,
+        _orig_status: null,
+        _orig_lembur: null,
+        _orig_makan: null,
+        _orig_catatan: null
+      });
       $('modalPekerja').close();
       if (isTambahMandor) onProyekChange(nama);
       else onMandorChange();
