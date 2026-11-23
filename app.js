@@ -73,7 +73,15 @@ async function verifikasiPin() {
       };
     });
 
+    const isAdmin = !!data.is_admin;
     $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${p.nama_proyek}">${p.nama_proyek}</option>`).join('');
+
+    const labelP = $('labelProyek');
+    if (labelP) {
+      labelP.textContent = isAdmin ? "1. Pilih Proyek / Lokasi (Mode Admin)" : "1. Lokasi Proyek (Terkunci)";
+    }
+    $('selectProyek').disabled = !isAdmin && daftarProyek.length <= 1;
+
     onProyekChange();
 
     $('pinSection').classList.add('hidden');
