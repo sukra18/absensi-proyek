@@ -1,0 +1,6 @@
+# Abaikan file Excel
+*.xlsx
+*.xls
+
+# Abaikan Google Apps Script
+Code.gs
