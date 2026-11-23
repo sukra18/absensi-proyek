@@ -316,8 +316,9 @@ async function simpanPekerja() {
     } else {
       alert(res.message || "Gagal menyimpan.");
     }
-  } catch {
-    alert("Gagal terhubung ke server. Periksa sinyal internet.");
+  } catch (err) {
+    console.error("Gagal simpan pekerja:", err);
+    alert(`Gagal terhubung ke server: ${err.message || 'Periksa koneksi internet Anda.'}`);
   } finally {
     btn.disabled = false; btn.textContent = "Simpan";
   }
