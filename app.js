@@ -17,6 +17,16 @@ function notif(pesan, sukses = true) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// Helper Reset Foto (dipanggil saat ganti proyek atau mandor)
+function resetFoto() {
+  fotoBase64 = "";
+  $('previewFoto').style.display = 'none';
+  $('previewFoto').src = "";
+  $('infoFoto').textContent = "";
+  const inputFoto = document.querySelector('input[type="file"]');
+  if (inputFoto) inputFoto.value = "";
+}
+
 // Helper Request API ke Google Apps Script
 async function postApi(action, data = {}) {
   const res = await fetch(URL_GAS, {
@@ -66,6 +76,7 @@ async function verifikasiPin() {
 
 // 2. Filter Proyek & Mandor
 function onProyekChange(overrideMandor = "") {
+  resetFoto();
   const proyek = $('selectProyek').value;
   const info = daftarProyek.find(p => p.nama_proyek === proyek);
   $('inputOperator').value = info ? info.pelaksana_lapangan : "-";
@@ -81,6 +92,7 @@ function onProyekChange(overrideMandor = "") {
 }
 
 function onMandorChange() {
+  resetFoto();
   const proyek = $('selectProyek').value, mandor = $('selectMandor').value;
   pekerjaTampil = semuaPekerja.filter(p => p.proyek_default === proyek && p.nama_mandor === mandor);
   renderDaftarPekerja();
@@ -193,7 +205,9 @@ async function kirimAbsensi() {
   const mandor = $('selectMandor').value;
   if (!mandor) return notif("Pilih atau tambahkan Mandor terlebih dahulu.", false);
   if (!pekerjaTampil.length) return notif("Tidak ada pekerja untuk dikirim.", false);
-  if (!fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
+  // Foto hanya wajib jika ada pekerja yang BELUM pernah diabsen hari ini
+  const adaPekerjaBaru = pekerjaTampil.some(p => !p.sudah_absen);
+  if (adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
 
   const btn = $('btnKirim');
   btn.disabled = true; btn.textContent = "Mengirim absensi...";
