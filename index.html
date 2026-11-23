@@ -1,103 +1,108 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Absensi Harian Pekerja Lapangan</title>
   <link rel="stylesheet" href="style.css?v=1.2">
 </head>
+
 <body>
 
-<div class="container">
-  <div id="alertBox" class="alert"></div>
+  <div class="container">
+    <div id="alertBox" class="alert"></div>
 
-  <!-- 1. PIN LOGIN -->
-  <div id="pinSection" class="card">
-    <h1>Absensi Pekerja Lapangan</h1>
-    <p style="margin: 4px 0 16px; color:#4b5563;">Masukkan PIN Proyek untuk mulai mengisi absensi.</p>
-    <label for="inputPin">PIN Proyek</label>
-    <input type="password" id="inputPin" inputmode="numeric" placeholder="Contoh: 1234" maxlength="6">
-    <button id="btnMasuk" class="btn-primary" onclick="verifikasiPin()">Masuk</button>
-  </div>
+    <!-- 1. PIN LOGIN -->
+    <div id="pinSection" class="card">
+      <h1>Absensi Pekerja Lapangan</h1>
+      <p style="margin: 4px 0 16px; color:#4b5563;">Masukkan PIN Proyek untuk mulai mengisi absensi.</p>
+      <label for="inputPin">PIN Proyek</label>
+      <input type="password" id="inputPin" inputmode="numeric" placeholder="Contoh: 1234" maxlength="6">
+      <button id="btnMasuk" class="btn-primary" onclick="verifikasiPin()">Masuk</button>
+    </div>
 
-  <!-- 2. FORM UTAMA -->
-  <div id="mainSection" class="hidden">
-    <div class="card">
-      <h1>Form Absensi Harian</h1>
-      <p id="tanggalHariIni" style="margin:4px 0 14px; font-weight:700; color:var(--primary);"></p>
+    <!-- 2. FORM UTAMA -->
+    <div id="mainSection" class="hidden">
+      <div class="card">
+        <h1>Form Absensi Harian</h1>
+        <p id="tanggalHariIni" style="margin:4px 0 14px; font-weight:700; color:var(--primary);"></p>
 
-      <label for="selectProyek">1. Pilih Proyek / Lokasi</label>
-      <select id="selectProyek" onchange="onProyekChange()"></select>
+        <label for="selectProyek">1. Pilih Proyek / Lokasi</label>
+        <select id="selectProyek" onchange="onProyekChange()"></select>
 
-      <label for="inputOperator">2. Nama Pelaksana Lapangan</label>
-      <input type="text" id="inputOperator" readonly>
+        <label for="inputOperator">2. Nama Pelaksana Lapangan</label>
+        <input type="text" id="inputOperator" readonly>
 
-      <div class="flex-between">
-        <label for="selectMandor" style="margin:0;">3. Pilih Mandor / Grup</label>
-        <button type="button" class="btn-secondary btn-small" onclick="bukaModal(true)">+ Mandor Baru</button>
+        <div class="flex-between">
+          <label for="selectMandor" style="margin:0;">3. Pilih Mandor / Grup</label>
+          <button type="button" class="btn-secondary btn-small" onclick="bukaModal(true)">+ Mandor Baru</button>
+        </div>
+        <select id="selectMandor" onchange="onMandorChange()"></select>
       </div>
-      <select id="selectMandor" onchange="onMandorChange()"></select>
-    </div>
 
-    <!-- DAFTAR PEKERJA -->
-    <div class="card">
-      <div class="flex-between">
-        <h2 style="margin:0;">Daftar Pekerja (<span id="jumlahPekerja">0</span>)</h2>
-        <button type="button" class="btn-secondary btn-small" onclick="bukaModal(false)">+ Pekerja Baru</button>
+      <!-- DAFTAR PEKERJA -->
+      <div class="card">
+        <div class="flex-between">
+          <h2 style="margin:0;">Daftar Pekerja (<span id="jumlahPekerja">0</span>)</h2>
+          <button type="button" class="btn-secondary btn-small" onclick="bukaModal(false)">+ Pekerja Baru</button>
+        </div>
+        <div id="workerList"></div>
       </div>
-      <div id="workerList"></div>
+
+      <!-- FOTO BUKTI -->
+      <div class="card">
+        <h2>Foto Kelompok Pekerja</h2>
+        <p style="margin:0 0 10px; font-size:14px; color:#374151;">Ambil foto bersama pekerja grup terpilih di lokasi
+          proyek.</p>
+        <input type="file" id="inputFoto" accept="image/*" capture="environment" class="hidden"
+          onchange="prosesFoto(event)">
+        <button type="button" class="btn-secondary" onclick="$('inputFoto').click()">Ambil Foto Kamera</button>
+        <img id="previewFoto" alt="Preview Foto">
+        <p id="infoFoto" style="font-size:13px; color:var(--success); font-weight:700; margin:8px 0 0;"></p>
+      </div>
+
+      <button id="btnKirim" class="btn-success" onclick="kirimAbsensi()">Kirim Absensi Grup Ini</button>
+    </div>
+  </div>
+
+  <!-- MODAL KONFIRMASI KIRIM ABSENSI -->
+  <dialog id="modalKonfirmasi">
+    <h2 style="margin-top:0; font-size:18px;">Konfirmasi Pengiriman</h2>
+    <div id="konfirmasiRingkasan"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;">
+      <button type="button" class="btn-secondary" onclick="$('modalKonfirmasi').close()">Batal</button>
+      <button type="button" id="btnKonfirmasiKirim" class="btn-success" onclick="kirimAbsensiProses()">✓ Kirim</button>
+    </div>
+  </dialog>
+
+  <!-- MODAL TUNGGAL (UNTUK MANDOR & PEKERJA) -->
+  <dialog id="modalPekerja">
+    <h2 id="modalJudul" style="margin-top:0;">Tambah Pekerja</h2>
+    <p id="modalSub" style="font-size:13px; color:var(--primary); font-weight:700; margin:-4px 0 12px;"></p>
+
+    <label for="inputNamaBaru" id="labelNama">Nama Lengkap</label>
+    <input type="text" id="inputNamaBaru" placeholder="Nama lengkap">
+
+    <div id="wrapperKeahlian">
+      <label for="selectKeahlian">Keahlian / Jabatan</label>
+      <select id="selectKeahlian">
+        <option value="Kepala Tukang">Kepala Tukang</option>
+        <option value="Tukang Batu">Tukang Batu</option>
+        <option value="Tukang Besi">Tukang Besi</option>
+        <option value="Tukang Kayu">Tukang Kayu</option>
+        <option value="Kenek">Kenek</option>
+        <option value="Mandor">Mandor</option>
+      </select>
     </div>
 
-    <!-- FOTO BUKTI -->
-    <div class="card">
-      <h2>Foto Kelompok Pekerja</h2>
-      <p style="margin:0 0 10px; font-size:14px; color:#374151;">Ambil foto bersama pekerja grup terpilih di lokasi proyek.</p>
-      <input type="file" id="inputFoto" accept="image/*" capture="environment" class="hidden" onchange="prosesFoto(event)">
-      <button type="button" class="btn-secondary" onclick="$('inputFoto').click()">Ambil Foto Kamera</button>
-      <img id="previewFoto" alt="Preview Foto">
-      <p id="infoFoto" style="font-size:13px; color:var(--success); font-weight:700; margin:8px 0 0;"></p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+      <button type="button" class="btn-secondary" onclick="$('modalPekerja').close()">Batal</button>
+      <button type="button" id="btnSimpanModal" class="btn-primary" onclick="simpanPekerja()">Simpan</button>
     </div>
+  </dialog>
 
-    <button id="btnKirim" class="btn-success" onclick="kirimAbsensi()">Kirim Absensi Grup Ini</button>
-  </div>
-</div>
-
-<!-- MODAL KONFIRMASI KIRIM ABSENSI -->
-<dialog id="modalKonfirmasi">
-  <h2 style="margin-top:0; font-size:18px;">Konfirmasi Pengiriman</h2>
-  <div id="konfirmasiRingkasan"></div>
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;">
-    <button type="button" class="btn-secondary" onclick="$('modalKonfirmasi').close()">Batal</button>
-    <button type="button" id="btnKonfirmasiKirim" class="btn-success" onclick="kirimAbsensiProses()">✓ Kirim</button>
-  </div>
-</dialog>
-
-<!-- MODAL TUNGGAL (UNTUK MANDOR & PEKERJA) -->
-<dialog id="modalPekerja">
-  <h2 id="modalJudul" style="margin-top:0;">Tambah Pekerja</h2>
-  <p id="modalSub" style="font-size:13px; color:var(--primary); font-weight:700; margin:-4px 0 12px;"></p>
-
-  <label for="inputNamaBaru" id="labelNama">Nama Lengkap</label>
-  <input type="text" id="inputNamaBaru" placeholder="Nama lengkap">
-
-  <div id="wrapperKeahlian">
-    <label for="selectKeahlian">Keahlian / Jabatan</label>
-    <select id="selectKeahlian">
-      <option value="Kepala Tukang">Kepala Tukang</option>
-      <option value="Tukang Batu">Tukang Batu</option>
-      <option value="Tukang Besi">Tukang Besi</option>
-      <option value="Tukang Kayu">Tukang Kayu</option>
-      <option value="Kenek">Kenek</option>
-      <option value="Mandor">Mandor</option>
-    </select>
-  </div>
-
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-    <button type="button" class="btn-secondary" onclick="$('modalPekerja').close()">Batal</button>
-    <button type="button" id="btnSimpanModal" class="btn-primary" onclick="simpanPekerja()">Simpan</button>
-  </div>
-</dialog>
-
-<script src="app.js?v=1.2"></script>
+  <script src="app.js?v=1.2"></script>
 </body>
+
 </html>

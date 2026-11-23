@@ -67,8 +67,9 @@ async function verifikasiPin() {
 
     $('pinSection').classList.add('hidden');
     $('mainSection').classList.remove('hidden');
-  } catch {
-    notif("Gagal terhubung ke server. Periksa sinyal internet.", false);
+  } catch (err) {
+    console.error("Gagal verifikasi PIN:", err);
+    notif(`Gagal terhubung ke server: ${err.message || 'Periksa sinyal internet.'}`, false);
   } finally {
     btn.disabled = false; btn.textContent = "Masuk";
   }
@@ -264,8 +265,9 @@ async function kirimAbsensiProses() {
     } else {
       notif(res.message || "Gagal menyimpan absensi.", false);
     }
-  } catch {
-    notif("Pengiriman gagal karena gangguan sinyal. Coba tekan Kirim kembali.", false);
+  } catch (err) {
+    console.error("Gagal kirim absensi:", err);
+    notif(`Pengiriman gagal (${err.message || 'gangguan sinyal'}). Coba tekan Kirim kembali.`, false);
   } finally {
     btn.disabled = false; btn.textContent = "Kirim Absensi Grup Ini";
   }
