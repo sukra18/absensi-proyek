@@ -62,6 +62,16 @@
   </div>
 </div>
 
+<!-- MODAL KONFIRMASI KIRIM ABSENSI -->
+<dialog id="modalKonfirmasi">
+  <h2 style="margin-top:0; font-size:18px;">Konfirmasi Pengiriman</h2>
+  <div id="konfirmasiRingkasan"></div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;">
+    <button type="button" class="btn-secondary" onclick="$('modalKonfirmasi').close()">Batal</button>
+    <button type="button" id="btnKonfirmasiKirim" class="btn-success" onclick="kirimAbsensiProses()">✓ Kirim</button>
+  </div>
+</dialog>
+
 <!-- MODAL TUNGGAL (UNTUK MANDOR & PEKERJA) -->
 <dialog id="modalPekerja">
   <h2 id="modalJudul" style="margin-top:0;">Tambah Pekerja</h2>

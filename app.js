@@ -199,7 +199,7 @@ function getGPS() {
   });
 }
 
-// 5. Kirim Absensi (Anti Duplikat: data pekerja langsung ter-update)
+// 5. Tampilkan Konfirmasi Sebelum Kirim
 async function kirimAbsensi() {
   $('alertBox').style.display = 'none';
   const mandor = $('selectMandor').value;
@@ -208,6 +208,35 @@ async function kirimAbsensi() {
   // Foto hanya wajib jika ada pekerja yang BELUM pernah diabsen hari ini
   const adaPekerjaBaru = pekerjaTampil.some(p => !p.sudah_absen);
   if (adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
+
+  // Hitung ringkasan
+  const jumlahFull     = pekerjaTampil.filter(p => p.status_hadir === 1).length;
+  const jumlahSetengah = pekerjaTampil.filter(p => p.status_hadir === 0.5).length;
+  const jumlahAbsen    = pekerjaTampil.filter(p => p.status_hadir === 0).length;
+  const totalLembur    = pekerjaTampil.reduce((s, p) => s + (Number(p.jam_lembur) || 0), 0);
+  const jumlahMakan    = pekerjaTampil.filter(p => p.uang_makan === 1).length;
+
+  $('konfirmasiRingkasan').innerHTML = `
+    <div class="konfirmasi-info">
+      <div class="konfirmasi-row"><span>Proyek</span><strong>${$('selectProyek').value}</strong></div>
+      <div class="konfirmasi-row"><span>Mandor</span><strong>${mandor}</strong></div>
+      <div class="konfirmasi-row"><span>Total Pekerja</span><strong>${pekerjaTampil.length} orang</strong></div>
+    </div>
+    <div class="konfirmasi-info">
+      <div class="konfirmasi-row"><span>✅ Full (1 hari)</span><span class="badge-full">${jumlahFull} orang</span></div>
+      <div class="konfirmasi-row"><span>🕐 Setengah Hari</span><span class="badge-half">${jumlahSetengah} orang</span></div>
+      <div class="konfirmasi-row"><span>❌ Tidak Hadir</span><span class="badge-absen">${jumlahAbsen} orang</span></div>
+      <div class="konfirmasi-row"><span>⏱ Total Lembur</span><span>${totalLembur > 0 ? totalLembur + ' jam' : '-'}</span></div>
+      <div class="konfirmasi-row"><span>🍽 Dapat Uang Makan</span><span>${jumlahMakan > 0 ? jumlahMakan + ' orang' : '-'}</span></div>
+    </div>
+  `;
+  $('modalKonfirmasi').showModal();
+}
+
+// 5b. Proses Kirim Setelah Dikonfirmasi
+async function kirimAbsensiProses() {
+  $('modalKonfirmasi').close();
+  const mandor = $('selectMandor').value;
 
   const btn = $('btnKirim');
   btn.disabled = true; btn.textContent = "Mengirim absensi...";
