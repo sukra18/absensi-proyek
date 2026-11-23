@@ -44,7 +44,12 @@ async function verifikasiPin() {
     currentPin = pin;
     daftarProyek = data.daftar_proyek || [];
     semuaPekerja = (data.daftar_pekerja || []).map(p => ({
-      ...p, status_hadir: 1, jam_lembur: 0, uang_makan: 0, catatan: ""
+      ...p,
+      status_hadir: p.status_hadir !== undefined ? p.status_hadir : 1,
+      jam_lembur: p.jam_lembur || 0,
+      uang_makan: p.uang_makan || 0,
+      catatan: p.catatan || "",
+      sudah_absen: !!p.sudah_absen
     }));
 
     $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${p.nama_proyek}">${p.nama_proyek}</option>`).join('');
@@ -81,7 +86,7 @@ function onMandorChange() {
   renderDaftarPekerja();
 }
 
-// 3. Render Daftar Pekerja
+// 3. Render Daftar Pekerja dengan Indikator Status Absen
 function renderDaftarPekerja() {
   const list = $('workerList');
   $('jumlahPekerja').textContent = pekerjaTampil.length;
@@ -92,10 +97,15 @@ function renderDaftarPekerja() {
   }
 
   list.innerHTML = pekerjaTampil.map((p, i) => `
-    <div class="worker-item" data-idx="${i}">
+    <div class="worker-item ${p.sudah_absen ? 'is-done' : ''}" data-idx="${i}">
       <div class="flex-between">
-        <span class="worker-name">${p.nama_pekerja}</span>
-        <span class="worker-role">${p.keahlian}</span>
+        <div>
+          <span class="worker-name">${p.nama_pekerja}</span>
+          <span class="worker-role">${p.keahlian}</span>
+        </div>
+        <span class="${p.sudah_absen ? 'badge-done' : 'badge-pending'}">
+          ${p.sudah_absen ? '✓ Sudah Absen' : 'Belum Absen'}
+        </span>
       </div>
       <div class="status-group">
         <button type="button" class="status-btn ${p.status_hadir === 1 ? 'active-full' : ''}" onclick="setStatus(${i}, 1, this)">Full (1)</button>
@@ -113,7 +123,7 @@ function renderDaftarPekerja() {
   `).join('');
 }
 
-// Update Status & Meal Tanpa Re-render Total (Menjaga Input & Fokus)
+// Update Status & Meal Tanpa Re-render Total
 function setStatus(i, val, btn) {
   const p = pekerjaTampil[i];
   p.status_hadir = val;
@@ -177,7 +187,7 @@ function getGPS() {
   });
 }
 
-// 5. Kirim Absensi
+// 5. Kirim Absensi (Anti Duplikat: data pekerja langsung ter-update)
 async function kirimAbsensi() {
   $('alertBox').style.display = 'none';
   const mandor = $('selectMandor').value;
@@ -204,6 +214,10 @@ async function kirimAbsensi() {
       fotoBase64 = "";
       $('previewFoto').style.display = 'none';
       $('infoFoto').textContent = "";
+
+      // Tandai seluruh pekerja yang dikirim sebagai "Sudah Absen"
+      pekerjaTampil.forEach(p => p.sudah_absen = true);
+      renderDaftarPekerja();
     } else {
       notif(res.message || "Gagal menyimpan absensi.", false);
     }
@@ -249,7 +263,7 @@ async function simpanPekerja() {
     });
 
     if (res.status === "success") {
-      semuaPekerja.push({ ...res.pekerja, status_hadir: 1, jam_lembur: 0, uang_makan: 0, catatan: "" });
+      semuaPekerja.push({ ...res.pekerja, status_hadir: 1, jam_lembur: 0, uang_makan: 0, catatan: "", sudah_absen: false });
       $('modalPekerja').close();
       if (isTambahMandor) onProyekChange(nama);
       else onMandorChange();
