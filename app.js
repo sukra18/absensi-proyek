@@ -115,6 +115,7 @@ function onMandorChange() {
   resetFoto();
   const proyek = $('selectProyek').value, mandor = $('selectMandor').value;
   pekerjaTampil = semuaPekerja.filter(p => p.proyek_default === proyek && p.nama_mandor === mandor);
+  if ($('inputCariPekerja')) $('inputCariPekerja').value = "";
   renderDaftarPekerja();
 }
 
@@ -193,13 +194,81 @@ function renderDaftarPekerja() {
       <button type="button" class="meal-btn ${p.uang_makan === 1 ? 'active-meal' : ''}" onclick="toggleMakan(${i}, this)">
         ${p.uang_makan === 1 ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)'}
       </button>
-      <div class="extra-inputs">
-        <input type="number" min="0" max="12" step="0.5" placeholder="Lembur (jam)" value="${p.jam_lembur || ''}" oninput="pekerjaTampil[${i}].jam_lembur = Number(this.value || 0); updateBadgeKartu(${i});">
-        <input type="text" placeholder="Catatan singkat (opsional)" value="${p.catatan}" oninput="pekerjaTampil[${i}].catatan = this.value; updateBadgeKartu(${i});">
+
+      <!-- Panel Lembur & Catatan Ringkas -->
+      <div class="lembur-wrapper">
+        <div class="lembur-header">
+          <span class="lembur-label">⏱ Jam Lembur:</span>
+          <div class="lembur-quick-btns">
+            <button type="button" class="btn-lembur ${p.jam_lembur === 1 ? 'active' : ''}" data-jam="1" onclick="setLembur(${i}, 1)">+1</button>
+            <button type="button" class="btn-lembur ${p.jam_lembur === 2 ? 'active' : ''}" data-jam="2" onclick="setLembur(${i}, 2)">+2</button>
+            <button type="button" class="btn-lembur ${p.jam_lembur === 3 ? 'active' : ''}" data-jam="3" onclick="setLembur(${i}, 3)">+3</button>
+            <button type="button" class="btn-lembur ${p.jam_lembur === 4 ? 'active' : ''}" data-jam="4" onclick="setLembur(${i}, 4)">+4</button>
+            <button type="button" class="btn-lembur btn-reset ${p.jam_lembur === 0 ? 'active' : ''}" data-jam="0" onclick="setLembur(${i}, 0)">✕</button>
+          </div>
+        </div>
+        <div class="extra-inputs">
+          <input type="number" class="input-lembur" min="0" max="12" step="0.5" placeholder="Jam" value="${p.jam_lembur || ''}" oninput="onInputLembur(${i}, this.value)">
+          <input type="text" placeholder="Catatan singkat (opsional)" value="${p.catatan}" oninput="pekerjaTampil[${i}].catatan = this.value; updateBadgeKartu(${i});">
+        </div>
       </div>
     </div>
   `;
   }).join('');
+}
+
+// Tombol Cepat Jam Lembur
+function setLembur(i, jam) {
+  const p = pekerjaTampil[i];
+  if (p.status_hadir === 0) return;
+  p.jam_lembur = Number(jam || 0);
+
+  const card = document.querySelector(`.worker-item[data-idx="${i}"]`);
+  if (card) {
+    const numInput = card.querySelector('.input-lembur');
+    if (numInput) numInput.value = p.jam_lembur > 0 ? p.jam_lembur : '';
+    card.querySelectorAll('.btn-lembur').forEach(btn => {
+      const bJam = Number(btn.getAttribute('data-jam'));
+      if (bJam === p.jam_lembur) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+  }
+
+  updateBadgeKartu(i);
+}
+
+function onInputLembur(i, val) {
+  const p = pekerjaTampil[i];
+  p.jam_lembur = Number(val || 0);
+
+  const card = document.querySelector(`.worker-item[data-idx="${i}"]`);
+  if (card) {
+    card.querySelectorAll('.btn-lembur').forEach(btn => {
+      const bJam = Number(btn.getAttribute('data-jam'));
+      if (bJam === p.jam_lembur) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+  }
+
+  updateBadgeKartu(i);
+}
+
+// Pencarian Cepat Pekerja
+function filterPekerja(keyword) {
+  const q = String(keyword || "").toLowerCase().trim();
+  const cards = document.querySelectorAll('.worker-item');
+  let matchCount = 0;
+
+  cards.forEach(card => {
+    const idx = parseInt(card.getAttribute('data-idx'), 10);
+    const p = pekerjaTampil[idx];
+    if (!p) return;
+    const match = !q || p.nama_pekerja.toLowerCase().includes(q) || p.keahlian.toLowerCase().includes(q);
+    card.style.display = match ? 'block' : 'none';
+    if (match) matchCount++;
+  });
+
+  $('jumlahPekerja').textContent = q ? `${matchCount} dari ${pekerjaTampil.length}` : pekerjaTampil.length;
 }
 
 // Update Status & Meal Tanpa Re-render Total
@@ -217,8 +286,12 @@ function setStatus(i, val, btn) {
   mealBtn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)';
 
   if (val === 0) {
-    const numInput = card.querySelector('input[type="number"]');
+    const numInput = card.querySelector('.input-lembur');
     if (numInput) numInput.value = '';
+    card.querySelectorAll('.btn-lembur').forEach(b => {
+      if (b.getAttribute('data-jam') === '0') b.classList.add('active');
+      else b.classList.remove('active');
+    });
   }
 
   updateBadgeKartu(i);

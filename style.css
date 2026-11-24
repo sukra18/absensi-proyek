@@ -248,15 +248,96 @@ button:disabled {
   border-color: var(--warning);
 }
 
+/* Pencarian Pekerja */
+.search-wrapper {
+  margin-bottom: 12px;
+}
+
+.search-input {
+  min-height: 42px;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  margin-bottom: 0;
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+}
+
+.search-input:focus {
+  background: #fff;
+  border-color: var(--primary);
+  outline: none;
+}
+
+/* Kontainer Lembur & Tombol Cepat */
+.lembur-wrapper {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 4px;
+}
+
+.lembur-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.lembur-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin: 0;
+}
+
+.lembur-quick-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-lembur {
+  width: auto;
+  min-width: 32px;
+  min-height: 28px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-lembur.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary-dark);
+}
+
+.btn-lembur.btn-reset {
+  color: var(--danger);
+  border-color: #fecaca;
+  background: #fff;
+}
+
+.btn-lembur.btn-reset.active {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+}
+
 .extra-inputs {
   display: grid;
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: 85px 1fr;
   gap: 8px;
 }
 
 .extra-inputs input {
   margin-bottom: 0;
-  min-height: 40px;
+  min-height: 38px;
   font-size: 14px;
 }
 
