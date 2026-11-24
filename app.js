@@ -204,6 +204,9 @@ function renderDaftarPekerja() {
             <button type="button" class="btn-lembur ${p.jam_lembur === 2 ? 'active' : ''}" data-jam="2" onclick="setLembur(${i}, 2)">+2</button>
             <button type="button" class="btn-lembur ${p.jam_lembur === 3 ? 'active' : ''}" data-jam="3" onclick="setLembur(${i}, 3)">+3</button>
             <button type="button" class="btn-lembur ${p.jam_lembur === 4 ? 'active' : ''}" data-jam="4" onclick="setLembur(${i}, 4)">+4</button>
+            <button type="button" class="btn-lembur ${p.jam_lembur === 5 ? 'active' : ''}" data-jam="5" onclick="setLembur(${i}, 5)">+5</button>
+            <button type="button" class="btn-lembur ${p.jam_lembur === 6 ? 'active' : ''}" data-jam="6" onclick="setLembur(${i}, 6)">+6</button>
+            <button type="button" class="btn-lembur ${p.jam_lembur === 7 ? 'active' : ''}" data-jam="7" onclick="setLembur(${i}, 7)">+7</button>
             <button type="button" class="btn-lembur btn-reset ${p.jam_lembur === 0 ? 'active' : ''}" data-jam="0" onclick="setLembur(${i}, 0)">✕</button>
           </div>
         </div>
@@ -223,10 +226,24 @@ function setLembur(i, jam) {
   if (p.status_hadir === 0) return;
   p.jam_lembur = Number(jam || 0);
 
+  // Otomatis aktifkan uang makan jika lembur 5 jam ke atas (s.d. 22.00 WIB+)
+  if (p.jam_lembur >= 5 && p.uang_makan === 0) {
+    p.uang_makan = 1;
+  } else if (p.jam_lembur === 0 && p.uang_makan === 1) {
+    p.uang_makan = 0;
+  }
+
   const card = document.querySelector(`.worker-item[data-idx="${i}"]`);
   if (card) {
     const numInput = card.querySelector('.input-lembur');
     if (numInput) numInput.value = p.jam_lembur > 0 ? p.jam_lembur : '';
+
+    const mealBtn = card.querySelector('.meal-btn');
+    if (mealBtn) {
+      mealBtn.className = `meal-btn ${p.uang_makan ? 'active-meal' : ''}`;
+      mealBtn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)';
+    }
+
     card.querySelectorAll('.btn-lembur').forEach(btn => {
       const bJam = Number(btn.getAttribute('data-jam'));
       if (bJam === p.jam_lembur) btn.classList.add('active');
