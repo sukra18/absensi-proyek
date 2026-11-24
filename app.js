@@ -177,8 +177,10 @@ function renderDaftarPekerja() {
       badgeClass = "badge-modified"; badgeText = "✎ Ada Perubahan"; itemClass = "is-modified";
     }
 
+    // Animasi stagger halus maksimal untuk 15 kartu pertama agar performa tetap 60fps
+    const delay = Math.min(i * 0.03, 0.45);
     return `
-    <div class="worker-item ${itemClass}" data-idx="${i}">
+    <div class="worker-item ${itemClass}" data-idx="${i}" style="animation-delay: ${delay}s;">
       <div class="flex-between">
         <div>
           <span class="worker-name">${p.nama_pekerja}</span>
