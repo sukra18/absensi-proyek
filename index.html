@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Absensi Harian Pekerja Lapangan</title>
-  <link rel="stylesheet" href="style.css?v=1.7">
+  <link rel="stylesheet" href="style.css?v=1.8">
 </head>
 
 <body>
@@ -58,9 +58,9 @@
         <h2>Foto Kelompok Pekerja</h2>
         <p style="margin:0 0 10px; font-size:14px; color:#374151;">Ambil foto bersama pekerja grup terpilih di lokasi
           proyek.</p>
-        <input type="file" id="inputFoto" accept="image/*" capture="environment" class="hidden"
+        <input type="file" id="inputFoto" accept="image/*" capture="camera" class="hidden"
           onchange="prosesFoto(event)">
-        <button type="button" class="btn-secondary" onclick="$('inputFoto').click()">Ambil Foto Kamera</button>
+        <button type="button" class="btn-secondary" onclick="$('inputFoto').click()">📷 Ambil Foto Kamera</button>
         <img id="previewFoto" alt="Preview Foto">
         <p id="infoFoto" style="font-size:13px; color:var(--success); font-weight:700; margin:8px 0 0;"></p>
       </div>
@@ -105,7 +105,7 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=1.7"></script>
+  <script src="app.js?v=1.8"></script>
 </body>
 
 </html>

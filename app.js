@@ -338,10 +338,16 @@ function toggleMakan(i, btn) {
   updateBadgeKartu(i);
 }
 
-// 4. Kompresi Foto Kamera
+// 4. Kompresi Foto Kamera & Proteksi Foto Realtime
 function prosesFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
+
+  // Cek apakah foto terlalu lama (toleransi: file diambil/dimodifikasi dalam 12 jam terakhir)
+  const now = Date.now();
+  if (file.lastModified && (now - file.lastModified > 12 * 60 * 60 * 1000)) {
+    alert("Peringatan: Foto yang dipilih terdeteksi foto lama. Harap gunakan kamera langsung di lokasi proyek.");
+  }
 
   const r = new FileReader();
   r.onload = ev => {
