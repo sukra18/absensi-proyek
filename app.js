@@ -192,7 +192,7 @@ function renderDaftarPekerja() {
         <button type="button" class="status-btn ${p.status_hadir === 0 ? 'active-absent' : ''}" onclick="setStatus(${i}, 0, this)">Absen (0)</button>
       </div>
       <button type="button" class="meal-btn ${p.uang_makan === 1 ? 'active-meal' : ''}" onclick="toggleMakan(${i}, this)">
-        ${p.uang_makan === 1 ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)'}
+        ${p.uang_makan === 1 ? '✓ Dapat Uang Makan (Lembur 7 Jam)' : '+ Centang Uang Makan (Lembur 7 Jam)'}
       </button>
 
       <!-- Panel Lembur & Catatan Ringkas -->
@@ -226,10 +226,10 @@ function setLembur(i, jam) {
   if (p.status_hadir === 0) return;
   p.jam_lembur = Number(jam || 0);
 
-  // Otomatis aktifkan uang makan jika lembur 5 jam ke atas (s.d. 22.00 WIB+)
-  if (p.jam_lembur >= 5 && p.uang_makan === 0) {
+  // Otomatis aktifkan uang makan HANYA jika lembur 7 jam ke atas
+  if (p.jam_lembur >= 7) {
     p.uang_makan = 1;
-  } else if (p.jam_lembur === 0 && p.uang_makan === 1) {
+  } else {
     p.uang_makan = 0;
   }
 
@@ -241,7 +241,7 @@ function setLembur(i, jam) {
     const mealBtn = card.querySelector('.meal-btn');
     if (mealBtn) {
       mealBtn.className = `meal-btn ${p.uang_makan ? 'active-meal' : ''}`;
-      mealBtn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)';
+      mealBtn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur 7 Jam)' : '+ Centang Uang Makan (Lembur 7 Jam)';
     }
 
     card.querySelectorAll('.btn-lembur').forEach(btn => {
@@ -258,8 +258,21 @@ function onInputLembur(i, val) {
   const p = pekerjaTampil[i];
   p.jam_lembur = Number(val || 0);
 
+  // Otomatis aktifkan uang makan HANYA jika lembur 7 jam ke atas
+  if (p.jam_lembur >= 7) {
+    p.uang_makan = 1;
+  } else {
+    p.uang_makan = 0;
+  }
+
   const card = document.querySelector(`.worker-item[data-idx="${i}"]`);
   if (card) {
+    const mealBtn = card.querySelector('.meal-btn');
+    if (mealBtn) {
+      mealBtn.className = `meal-btn ${p.uang_makan ? 'active-meal' : ''}`;
+      mealBtn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur 7 Jam)' : '+ Centang Uang Makan (Lembur 7 Jam)';
+    }
+
     card.querySelectorAll('.btn-lembur').forEach(btn => {
       const bJam = Number(btn.getAttribute('data-jam'));
       if (bJam === p.jam_lembur) btn.classList.add('active');
@@ -300,7 +313,7 @@ function setStatus(i, val, btn) {
 
   const mealBtn = card.querySelector('.meal-btn');
   mealBtn.className = `meal-btn ${p.uang_makan ? 'active-meal' : ''}`;
-  mealBtn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)';
+  mealBtn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur 7 Jam)' : '+ Centang Uang Makan (Lembur 7 Jam)';
 
   if (val === 0) {
     const numInput = card.querySelector('.input-lembur');
@@ -319,7 +332,7 @@ function toggleMakan(i, btn) {
   if (p.status_hadir === 0) return;
   p.uang_makan = p.uang_makan === 1 ? 0 : 1;
   btn.className = `meal-btn ${p.uang_makan ? 'active-meal' : ''}`;
-  btn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur s.d. 22.00 WIB)' : '+ Centang Uang Makan (Lembur s.d. 22.00 WIB)';
+  btn.textContent = p.uang_makan ? '✓ Dapat Uang Makan (Lembur 7 Jam)' : '+ Centang Uang Makan (Lembur 7 Jam)';
   updateBadgeKartu(i);
 }
 
