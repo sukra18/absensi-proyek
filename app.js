@@ -338,7 +338,7 @@ function toggleMakan(i, btn) {
   updateBadgeKartu(i);
 }
 
-// 4. Kompresi Foto Kamera & Proteksi Foto Realtime
+// 4. Kompresi Foto Kamera, Proteksi Foto Realtime & Watermark Otomatis
 function prosesFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -349,20 +349,81 @@ function prosesFoto(e) {
     alert("Peringatan: Foto yang dipilih terdeteksi foto lama. Harap gunakan kamera langsung di lokasi proyek.");
   }
 
+  $('infoFoto').textContent = "Memproses foto & watermark...";
+
   const r = new FileReader();
   r.onload = ev => {
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       const c = document.createElement('canvas'), maxW = 1024;
       let w = img.width, h = img.height;
       if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
       c.width = w; c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // Ambil GPS untuk watermark (timeout 5 detik)
+      let gpsText = "GPS: -";
+      try {
+        const gps = await getGPS();
+        if (gps && !gps.includes("gagal") && !gps.includes("tidak")) {
+          gpsText = "GPS: " + gps;
+        }
+      } catch (_) {}
+
+      // Kumpulkan info watermark
+      const namaProyek = $('selectProyek').value || "-";
+      const namaMandor = $('selectMandor').value || "-";
+      const waktu = new Date().toLocaleDateString("id-ID", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      }) + "  " + new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit", minute: "2-digit", second: "2-digit"
+      }) + " WIB";
+
+      const lines = [
+        namaProyek,
+        "Mandor: " + namaMandor,
+        waktu,
+        gpsText
+      ];
+
+      // Gambar watermark di pojok kiri bawah foto
+      const fontSize = Math.max(12, Math.round(w * 0.028));
+      const lineHeight = fontSize * 1.35;
+      const padding = Math.round(fontSize * 0.7);
+      const blockHeight = (lines.length * lineHeight) + (padding * 2);
+      const blockY = h - blockHeight;
+
+      // Background semi-transparan gelap
+      ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+      ctx.fillRect(0, blockY, w, blockHeight);
+
+      // Garis aksen biru di atas blok watermark
+      ctx.fillStyle = "#3b82f6";
+      ctx.fillRect(0, blockY, w, 3);
+
+      // Teks watermark putih
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.textBaseline = "top";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+
+      lines.forEach((text, idx) => {
+        ctx.fillText(text, padding, blockY + padding + (idx * lineHeight));
+      });
+
+      // Reset shadow
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+
       fotoBase64 = c.toDataURL('image/jpeg', 0.7);
 
       $('previewFoto').src = fotoBase64;
       $('previewFoto').style.display = 'block';
-      $('infoFoto').textContent = `Foto siap dikirim (${Math.round((fotoBase64.length * 3) / 4 / 1024)} KB).`;
+      $('infoFoto').textContent = `Foto + watermark siap dikirim (${Math.round((fotoBase64.length * 3) / 4 / 1024)} KB).`;
     };
     img.src = ev.target.result;
   };
