@@ -605,7 +605,8 @@ async function simpanPekerja() {
         _orig_catatan: null
       });
       $('modalPekerja').close();
-      if (isTambahMandor) onProyekChange(nama);
+      const targetMandor = (res.pekerja && res.pekerja.nama_mandor) ? res.pekerja.nama_mandor : nama;
+      if (isTambahMandor) onProyekChange(targetMandor);
       else onMandorChange();
       notif(`${isTambahMandor ? 'Mandor' : 'Pekerja'} "${nama}" berhasil didaftarkan.`, true);
     } else {
