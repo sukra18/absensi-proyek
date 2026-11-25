@@ -27,6 +27,13 @@ function resetFoto() {
   if (inputFoto) inputFoto.value = "";
 }
 
+// Helper: escape HTML untuk cegah XSS di innerHTML
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
 // Helper Request API ke Google Apps Script
 async function postApi(action, data = {}) {
   const res = await fetch(URL_GAS, {
@@ -34,6 +41,7 @@ async function postApi(action, data = {}) {
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ pin: currentPin, action, ...data })
   });
+  if (!res.ok) throw new Error(`Server error ${res.status}`);
   return await res.json();
 }
 
@@ -48,6 +56,7 @@ async function verifikasiPin() {
 
   try {
     const res = await fetch(`${URL_GAS}?pin=${encodeURIComponent(pin)}`);
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
     const data = await res.json();
     if (data.status !== "success") return notif(data.message || "PIN salah.", false);
 
@@ -74,7 +83,7 @@ async function verifikasiPin() {
     });
 
     const isAdmin = !!data.is_admin;
-    $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${p.nama_proyek}">${p.nama_proyek}</option>`).join('');
+    $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${esc(p.nama_proyek)}">${esc(p.nama_proyek)}</option>`).join('');
 
     const labelP = $('labelProyek');
     if (labelP) {
@@ -120,7 +129,7 @@ function onProyekChange(overrideMandor = "") {
   const mandors = [...new Set(semuaPekerja.filter(p => p.proyek_default === proyek && p.nama_mandor).map(p => p.nama_mandor))];
   const sel = $('selectMandor');
   sel.innerHTML = mandors.length 
-    ? mandors.map(m => `<option value="${m}">${m}</option>`).join('')
+    ? mandors.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('')
     : '<option value="">-- Belum ada mandor (+ Mandor Baru) --</option>';
 
   if (overrideMandor && mandors.includes(overrideMandor)) sel.value = overrideMandor;
@@ -199,8 +208,8 @@ function renderDaftarPekerja() {
     <div class="worker-item ${itemClass}" data-idx="${i}" style="animation-delay: ${delay}s;">
       <div class="flex-between">
         <div>
-          <span class="worker-name">${p.nama_pekerja}</span>
-          <span class="worker-role">${p.keahlian}</span>
+          <span class="worker-name">${esc(p.nama_pekerja)}</span>
+          <span class="worker-role">${esc(p.keahlian)}</span>
         </div>
         <span class="badge-status ${badgeClass}">${badgeText}</span>
       </div>
@@ -230,7 +239,7 @@ function renderDaftarPekerja() {
         </div>
         <div class="extra-inputs">
           <input type="number" class="input-lembur" min="0" max="12" step="0.5" placeholder="Jam" value="${p.jam_lembur || ''}" oninput="onInputLembur(${i}, this.value)">
-          <input type="text" placeholder="Catatan singkat (opsional)" value="${p.catatan}" oninput="pekerjaTampil[${i}].catatan = this.value; updateBadgeKartu(${i});">
+          <input type="text" placeholder="Catatan singkat (opsional)" value="${esc(p.catatan)}" oninput="pekerjaTampil[${i}].catatan = this.value; updateBadgeKartu(${i});">
         </div>
       </div>
     </div>
