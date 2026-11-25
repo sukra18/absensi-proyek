@@ -94,6 +94,22 @@ async function verifikasiPin() {
   }
 }
 
+// Helper Logout / Keluar & Ganti PIN
+function logout() {
+  if (confirm("Apakah Anda yakin ingin keluar dari form absensi?")) {
+    currentPin = "";
+    daftarProyek = [];
+    semuaPekerja = [];
+    pekerjaTampil = [];
+    resetFoto();
+    $('inputPin').value = "";
+    $('alertBox').style.display = 'none';
+    $('mainSection').classList.add('hidden');
+    $('pinSection').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
 // 2. Filter Proyek & Mandor
 function onProyekChange(overrideMandor = "") {
   resetFoto();

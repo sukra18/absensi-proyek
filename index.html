@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Absensi Harian Pekerja Lapangan</title>
-  <link rel="stylesheet" href="style.css?v=1.9">
+  <link rel="stylesheet" href="style.css?v=2.0">
 </head>
 
 <body>
@@ -25,7 +25,10 @@
     <!-- 2. FORM UTAMA -->
     <div id="mainSection" class="hidden">
       <div class="card">
-        <h1>Form Absensi Harian</h1>
+        <div class="flex-between" style="margin-bottom:0;">
+          <h1>Form Absensi Harian</h1>
+          <button type="button" class="btn-logout" onclick="logout()" title="Keluar / Ganti PIN">🚪 Keluar</button>
+        </div>
         <p id="tanggalHariIni" style="margin:4px 0 14px; font-weight:700; color:var(--primary);"></p>
 
         <label for="selectProyek" id="labelProyek">1. Pilih Proyek / Lokasi</label>
@@ -105,7 +108,7 @@
     </div>
   </dialog>
 
-  <script src="app.js?v=1.9"></script>
+  <script src="app.js?v=2.0"></script>
 </body>
 
 </html>
