@@ -517,3 +517,102 @@ dialog::backdrop {
 .badge-full  { color: var(--success); font-weight: 700; }
 .badge-half  { color: #d97706;        font-weight: 700; }
 .badge-absen { color: var(--danger);  font-weight: 700; }
+
+/* Panduan Teknis & SOP */
+.panduan-box {
+  margin-top: 18px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 14px;
+}
+
+.panduan-collapse {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.panduan-collapse[open] {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.panduan-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #1e293b;
+  user-select: none;
+  list-style: none;
+}
+
+.panduan-summary::-webkit-details-marker {
+  display: none;
+}
+
+.panduan-arrow {
+  font-size: 11px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.panduan-collapse[open] .panduan-arrow {
+  transform: rotate(180deg);
+}
+
+.panduan-content {
+  padding: 0 12px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.panduan-content h3 {
+  font-size: 13.5px;
+  margin: 14px 0 6px 0;
+  color: var(--primary-dark);
+}
+
+.panduan-content ol,
+.panduan-content ul {
+  margin: 4px 0 10px;
+  padding-left: 18px;
+}
+
+.panduan-content li {
+  margin-bottom: 5px;
+}
+
+.panduan-note {
+  background: #eff6ff;
+  border-left: 3px solid var(--primary);
+  padding: 8px 10px;
+  margin: 8px 0;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #1e40af;
+}
+
+.panduan-pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.panduan-pdf-link:hover {
+  background: #e2e8f0;
+}
