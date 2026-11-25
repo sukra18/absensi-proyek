@@ -579,6 +579,9 @@ async function simpanPekerja() {
 
   const proyek = $('selectProyek').value, mandor = $('selectMandor').value;
   const keahlian = isTambahMandor ? "Mandor" : $('selectKeahlian').value;
+  const mandorKirim = isTambahMandor
+    ? (nama.toLowerCase().startsWith("mandor ") ? nama : `Mandor ${nama}`)
+    : mandor;
   const btn = $('btnSimpanModal');
 
   btn.disabled = true; btn.textContent = "Menyimpan...";
@@ -588,7 +591,7 @@ async function simpanPekerja() {
       nama_pekerja: nama,
       keahlian: keahlian,
       proyek_default: proyek,
-      nama_mandor: isTambahMandor ? nama : mandor
+      nama_mandor: mandorKirim
     });
 
     if (res.status === "success") {
@@ -605,7 +608,7 @@ async function simpanPekerja() {
         _orig_catatan: null
       });
       $('modalPekerja').close();
-      const targetMandor = (res.pekerja && res.pekerja.nama_mandor) ? res.pekerja.nama_mandor : nama;
+      const targetMandor = (res.pekerja && res.pekerja.nama_mandor) ? res.pekerja.nama_mandor : mandorKirim;
       if (isTambahMandor) onProyekChange(targetMandor);
       else onMandorChange();
       notif(`${isTambahMandor ? 'Mandor' : 'Pekerja'} "${nama}" berhasil didaftarkan.`, true);
