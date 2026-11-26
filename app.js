@@ -403,6 +403,32 @@ function onInputLembur(i, val) {
   updateBadgeKartu(i);
 }
 
+// Opsi Aksi Cepat: Isi Semua Pekerja Hadir Lembur 7 Jam + Uang Makan / Reset
+function setSemuaLembur(jam) {
+  if (!pekerjaTampil.length) return notif("Tidak ada pekerja di grup ini.", false);
+
+  const targetJam = Number(jam || 0);
+  let count = 0;
+
+  pekerjaTampil.forEach(p => {
+    // Lewati pekerja berstatus Absen jika set lembur
+    if (targetJam > 0 && p.status_hadir === 0) return;
+    p.jam_lembur = targetJam;
+    p.uang_makan = targetJam >= 7 ? 1 : 0;
+    count++;
+  });
+
+  if (targetJam > 0 && count === 0) {
+    return notif("Semua pekerja di grup ini berstatus Absen. Ubah status hadir terlebih dahulu.", false);
+  }
+
+  renderDaftarPekerja();
+  const searchVal = $('inputCariPekerja')?.value;
+  if (searchVal) {
+    filterPekerja(searchVal);
+  }
+}
+
 // Pencarian Cepat Pekerja
 function filterPekerja(keyword) {
   const q = String(keyword || "").toLowerCase().trim();

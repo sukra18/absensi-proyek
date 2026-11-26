@@ -64,6 +64,14 @@
         <div class="search-wrapper">
           <input type="text" id="inputCariPekerja" class="search-input" placeholder="Cari nama pekerja atau keahlian..." oninput="filterPekerja(this.value)">
         </div>
+        <div class="bulk-lembur-bar">
+          <button type="button" class="btn-bulk-lembur" onclick="setSemuaLembur(7)">
+            ⚡ Semua Lembur 7 Jam + Makan
+          </button>
+          <button type="button" class="btn-bulk-reset" onclick="setSemuaLembur(0)" title="Reset lembur semua pekerja ke 0">
+            Reset
+          </button>
+        </div>
         <div id="workerList"></div>
       </div>
 
