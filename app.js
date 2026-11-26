@@ -112,9 +112,17 @@ async function verifikasiPin() {
     }
     $('selectProyek').disabled = !isAdmin && daftarProyek.length <= 1;
 
-    // Set date picker ke hari ini
+    // Set date picker ke hari ini — hanya admin bisa ganti tanggal
     $('inputTanggal').value = getTodayStr();
     updateLabelTanggal();
+    const wrapTanggal = $('inputTanggal').parentElement.querySelector('.wrap-tanggal') || $('inputTanggal');
+    if (isAdmin) {
+      $('inputTanggal').style.display = '';
+      $('inputTanggal').previousElementSibling.style.display = '';
+    } else {
+      $('inputTanggal').style.display = 'none';
+      $('inputTanggal').previousElementSibling.style.display = 'none';
+    }
 
     onProyekChange();
 
