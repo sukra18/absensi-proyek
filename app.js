@@ -108,7 +108,7 @@ async function verifikasiPin() {
 
     const labelP = $('labelProyek');
     if (labelP) {
-      labelP.textContent = isAdmin ? "1. Pilih Proyek / Lokasi (Mode Admin)" : "1. Lokasi Proyek (Terkunci)";
+      labelP.textContent = isAdmin ? "1. Pilih Proyek / Lokasi (Admin)" : "1. Lokasi Proyek";
     }
     $('selectProyek').disabled = !isAdmin && daftarProyek.length <= 1;
 
@@ -202,7 +202,7 @@ function onProyekChange(overrideMandor = "") {
 
   const mandors = [...new Set(semuaPekerja.filter(p => p.proyek_default === proyek && p.nama_mandor).map(p => p.nama_mandor))];
   const sel = $('selectMandor');
-  sel.innerHTML = mandors.length 
+  sel.innerHTML = mandors.length
     ? mandors.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('')
     : '<option value="">-- Belum ada mandor (+ Mandor Baru) --</option>';
 
@@ -468,7 +468,7 @@ function prosesFoto(e) {
         if (gps && !gps.includes("gagal") && !gps.includes("tidak")) {
           gpsText = "GPS: " + gps;
         }
-      } catch (_) {}
+      } catch (_) { }
 
       // Kumpulkan info watermark
       const namaProyek = $('selectProyek').value || "-";
@@ -557,13 +557,13 @@ async function kirimAbsensi() {
   if (adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
 
   // Hitung ringkasan khusus pekerja yang dikirim
-  const jumlahBaru     = pekerjaDikirim.filter(p => !p.sudah_absen).length;
-  const jumlahKoreksi  = pekerjaDikirim.filter(p => p.sudah_absen).length;
-  const jumlahFull     = pekerjaDikirim.filter(p => p.status_hadir === 1).length;
+  const jumlahBaru = pekerjaDikirim.filter(p => !p.sudah_absen).length;
+  const jumlahKoreksi = pekerjaDikirim.filter(p => p.sudah_absen).length;
+  const jumlahFull = pekerjaDikirim.filter(p => p.status_hadir === 1).length;
   const jumlahSetengah = pekerjaDikirim.filter(p => p.status_hadir === 0.5).length;
-  const jumlahAbsen    = pekerjaDikirim.filter(p => p.status_hadir === 0).length;
-  const totalLembur    = pekerjaDikirim.reduce((s, p) => s + (Number(p.jam_lembur) || 0), 0);
-  const jumlahMakan    = pekerjaDikirim.filter(p => p.uang_makan === 1).length;
+  const jumlahAbsen = pekerjaDikirim.filter(p => p.status_hadir === 0).length;
+  const totalLembur = pekerjaDikirim.reduce((s, p) => s + (Number(p.jam_lembur) || 0), 0);
+  const jumlahMakan = pekerjaDikirim.filter(p => p.uang_makan === 1).length;
 
   $('konfirmasiRingkasan').innerHTML = `
     <div class="konfirmasi-info">
