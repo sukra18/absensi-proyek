@@ -227,7 +227,7 @@ function onMandorChange() {
   const warningEl = $('warningOperatorLain');
   if (opLain && opLain !== operatorSaya && opLain !== "-") {
     if (warningEl) {
-      warningEl.textContent = `⚠️ Grup ini sudah diabsen oleh "${opLain}". Jika Anda kirim ulang, data sebelumnya akan tertimpa.`;
+      warningEl.textContent = `Peringatan: Grup ini sudah diabsen oleh "${opLain}". Jika Anda kirim ulang, data sebelumnya akan tertimpa.`;
       warningEl.style.display = 'block';
     }
   } else {
