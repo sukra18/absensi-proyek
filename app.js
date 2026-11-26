@@ -32,11 +32,19 @@ $('tanggalHariIni').textContent = new Date().toLocaleDateString("id-ID", {
 });
 
 // Helper Alert
+function tutupAlert() {
+  const b = $('alertBox');
+  if (b) b.style.display = 'none';
+}
+
 function notif(pesan, sukses = true) {
   const b = $('alertBox');
-  b.textContent = pesan;
+  b.innerHTML = `
+    <span class="alert-text">${esc(pesan)}</span>
+    <button type="button" class="alert-close" onclick="tutupAlert()" title="Tutup" aria-label="Tutup">&times;</button>
+  `;
   b.className = 'alert ' + (sukses ? 'alert-success' : 'alert-error');
-  b.style.display = 'block';
+  b.style.display = 'flex';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
