@@ -2,5 +2,5 @@
 *.xlsx
 *.xls
 
-# Abaikan Google Apps Script
-Code.gs
+# Folder internal Hermes
+.hermes/
