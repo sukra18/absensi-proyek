@@ -4,6 +4,27 @@ const $ = id => document.getElementById(id);
 let currentPin = "", daftarProyek = [], semuaPekerja = [], pekerjaTampil = [], fotoBase64 = "";
 let isTambahMandor = false;
 
+// Tanggal default = hari ini (WIB)
+function getTodayStr() {
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  const wib = new Date(d.getTime() + (off + 420) * 60000);
+  return wib.toISOString().slice(0, 10);
+}
+
+function getSelectedTanggal() {
+  return $('inputTanggal')?.value || getTodayStr();
+}
+
+function updateLabelTanggal() {
+  const val = getSelectedTanggal();
+  const [y, m, day] = val.split("-").map(Number);
+  const d = new Date(y, m - 1, day);
+  $('tanggalHariIni').textContent = d.toLocaleDateString("id-ID", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+}
+
 $('tanggalHariIni').textContent = new Date().toLocaleDateString("id-ID", {
   weekday: "long", day: "numeric", month: "long", year: "numeric"
 });
@@ -91,6 +112,10 @@ async function verifikasiPin() {
     }
     $('selectProyek').disabled = !isAdmin && daftarProyek.length <= 1;
 
+    // Set date picker ke hari ini
+    $('inputTanggal').value = getTodayStr();
+    updateLabelTanggal();
+
     onProyekChange();
 
     $('pinSection').classList.add('hidden');
@@ -100,6 +125,47 @@ async function verifikasiPin() {
     notif(`Gagal terhubung ke server: ${err.message || 'Periksa sinyal internet.'}`, false);
   } finally {
     btn.disabled = false; btn.textContent = "Masuk";
+  }
+}
+
+// Ganti tanggal absensi — reload status absen dari server
+async function onTanggalChange() {
+  updateLabelTanggal();
+  if (!currentPin) return;
+
+  try {
+    const tgl = getSelectedTanggal();
+    const res = await fetch(`${URL_GAS}?pin=${encodeURIComponent(currentPin)}&tanggal=${tgl}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.status !== "success") return;
+
+    semuaPekerja = (data.daftar_pekerja || []).map(p => {
+      const sh = p.status_hadir !== undefined ? p.status_hadir : 1;
+      const jl = Number(p.jam_lembur || 0);
+      const um = Number(p.uang_makan || 0);
+      const ct = p.catatan || "";
+      const sudah = !!p.sudah_absen;
+      return {
+        ...p,
+        status_hadir: sh,
+        jam_lembur: jl,
+        uang_makan: um,
+        catatan: ct,
+        sudah_absen: sudah,
+        _orig_status: sudah ? sh : null,
+        _orig_lembur: sudah ? jl : null,
+        _orig_makan: sudah ? um : null,
+        _orig_catatan: sudah ? ct : null
+      };
+    });
+
+    // Pertahankan pilihan proyek & mandor saat ini
+    const curProyek = $('selectProyek').value;
+    const curMandor = $('selectMandor').value;
+    onProyekChange(curMandor);
+  } catch (err) {
+    console.error("Gagal reload tanggal:", err);
   }
 }
 
@@ -528,6 +594,7 @@ async function kirimAbsensiProses() {
       nama_operator: $('inputOperator').value.trim(),
       koordinat_gps: gps,
       foto_base64: fotoBase64,
+      tanggal_absensi: getSelectedTanggal(),
       daftar_absensi: pekerjaDikirim
     });
 
