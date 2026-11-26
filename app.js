@@ -4,6 +4,7 @@ const $ = id => document.getElementById(id);
 let currentPin = "", daftarProyek = [], semuaPekerja = [], pekerjaTampil = [], fotoBase64 = "";
 let isTambahMandor = false;
 let operatorPerMandor = {};
+let isAdmin = false;
 
 // Tanggal default = hari ini (WIB)
 function getTodayStr() {
@@ -105,7 +106,7 @@ async function verifikasiPin() {
     });
 
     operatorPerMandor = data.operator_per_mandor || {};
-    const isAdmin = !!data.is_admin;
+    isAdmin = !!data.is_admin;
     $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${esc(p.nama_proyek)}">${esc(p.nama_proyek)}</option>`).join('');
 
     const labelP = $('labelProyek');
@@ -113,6 +114,14 @@ async function verifikasiPin() {
       labelP.textContent = isAdmin ? "1. Pilih Proyek / Lokasi (Admin)" : "1. Lokasi Proyek";
     }
     $('selectProyek').disabled = !isAdmin && daftarProyek.length <= 1;
+
+    // Set deskripsi foto untuk admin vs pelaksana
+    const descFoto = $('descFoto');
+    if (descFoto) {
+      descFoto.textContent = isAdmin
+        ? "Ambil foto bersama pekerja grup di lokasi proyek (Opsional untuk Admin)."
+        : "Ambil foto bersama pekerja grup terpilih di lokasi proyek.";
+    }
 
     // Set date picker ke hari ini — hanya admin bisa ganti tanggal
     $('inputTanggal').value = getTodayStr();
@@ -605,9 +614,9 @@ async function kirimAbsensi() {
     return notif("Semua pekerja di grup ini sudah diabsen dan tidak ada data yang diubah.", true);
   }
 
-  // Foto hanya wajib jika ada pekerja yang BELUM pernah diabsen hari ini
+  // Foto hanya wajib jika BUKAN admin dan ada pekerja yang BELUM pernah diabsen hari ini
   const adaPekerjaBaru = pekerjaDikirim.some(p => !p.sudah_absen);
-  if (adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
+  if (!isAdmin && adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
 
   // Hitung ringkasan khusus pekerja yang dikirim
   const jumlahBaru = pekerjaDikirim.filter(p => !p.sudah_absen).length;
