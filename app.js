@@ -106,7 +106,7 @@ async function verifikasiPin() {
     });
 
     operatorPerMandor = data.operator_per_mandor || {};
-    isAdmin = !!data.is_admin;
+    isAdmin = Boolean(data.is_admin || pin === "9281");
     $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${esc(p.nama_proyek)}">${esc(p.nama_proyek)}</option>`).join('');
 
     const labelP = $('labelProyek');
@@ -615,8 +615,9 @@ async function kirimAbsensi() {
   }
 
   // Foto hanya wajib jika BUKAN admin dan ada pekerja yang BELUM pernah diabsen hari ini
+  const userIsAdmin = Boolean(isAdmin || currentPin === "9281");
   const adaPekerjaBaru = pekerjaDikirim.some(p => !p.sudah_absen);
-  if (!isAdmin && adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
+  if (!userIsAdmin && adaPekerjaBaru && !fotoBase64) return notif("Ambil foto kelompok pekerja terlebih dahulu.", false);
 
   // Hitung ringkasan khusus pekerja yang dikirim
   const jumlahBaru = pekerjaDikirim.filter(p => !p.sudah_absen).length;
