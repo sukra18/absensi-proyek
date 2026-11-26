@@ -3,6 +3,7 @@ const $ = id => document.getElementById(id);
 
 let currentPin = "", daftarProyek = [], semuaPekerja = [], pekerjaTampil = [], fotoBase64 = "";
 let isTambahMandor = false;
+let operatorPerMandor = {};
 
 // Tanggal default = hari ini (WIB)
 function getTodayStr() {
@@ -103,6 +104,7 @@ async function verifikasiPin() {
       };
     });
 
+    operatorPerMandor = data.operator_per_mandor || {};
     const isAdmin = !!data.is_admin;
     $('selectProyek').innerHTML = daftarProyek.map(p => `<option value="${esc(p.nama_proyek)}">${esc(p.nama_proyek)}</option>`).join('');
 
@@ -168,6 +170,8 @@ async function onTanggalChange() {
       };
     });
 
+    operatorPerMandor = data.operator_per_mandor || {};
+
     // Pertahankan pilihan proyek & mandor saat ini
     const curProyek = $('selectProyek').value;
     const curMandor = $('selectMandor').value;
@@ -215,6 +219,21 @@ function onMandorChange() {
   const proyek = $('selectProyek').value, mandor = $('selectMandor').value;
   pekerjaTampil = semuaPekerja.filter(p => p.proyek_default === proyek && p.nama_mandor === mandor);
   if ($('inputCariPekerja')) $('inputCariPekerja').value = "";
+
+  // Warning jika mandor ini sudah diabsen oleh operator lain
+  const key = `${mandor}___${proyek}`;
+  const opLain = operatorPerMandor[key];
+  const operatorSaya = $('inputOperator').value.trim();
+  const warningEl = $('warningOperatorLain');
+  if (opLain && opLain !== operatorSaya && opLain !== "-") {
+    if (warningEl) {
+      warningEl.textContent = `⚠️ Grup ini sudah diabsen oleh "${opLain}". Jika Anda kirim ulang, data sebelumnya akan tertimpa.`;
+      warningEl.style.display = 'block';
+    }
+  } else {
+    if (warningEl) warningEl.style.display = 'none';
+  }
+
   renderDaftarPekerja();
 }
 
