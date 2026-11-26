@@ -606,3 +606,46 @@ dialog::backdrop {
 .btn-bulk-reset:active {
   transform: scale(0.98);
 }
+
+/* Shortcut Navigasi Cepat */
+.btn-shortcut-kirim {
+  width: 100%;
+  min-height: 40px;
+  margin-bottom: 12px;
+  background: #f8fafc;
+  border: 1.5px dashed #94a3b8;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-shortcut-kirim:hover {
+  background: #f1f5f9;
+  border-color: #64748b;
+  color: #0f172a;
+}
+
+.btn-shortcut-kirim:active {
+  transform: scale(0.98);
+}
+
+.btn-scroll-top {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 6px 12px;
+  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.btn-scroll-top:hover {
+  color: #1e293b;
+}

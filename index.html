@@ -72,11 +72,14 @@
             Reset
           </button>
         </div>
+        <button type="button" class="btn-shortcut-kirim" onclick="scrollToFoto()">
+          Lanjut ke Foto &amp; Kirim &darr;
+        </button>
         <div id="workerList"></div>
       </div>
 
       <!-- FOTO BUKTI -->
-      <div class="card">
+      <div id="cardFoto" class="card">
         <h2>Foto Kelompok Pekerja</h2>
         <p style="margin:0 0 10px; font-size:14px; color:#374151;">Ambil foto bersama pekerja grup terpilih di lokasi
           proyek.</p>
@@ -88,6 +91,9 @@
       </div>
 
       <button id="btnKirim" class="btn-success" onclick="kirimAbsensi()">Kirim Absensi Grup Ini</button>
+      <div style="text-align:center; margin-top: 10px;">
+        <button type="button" class="btn-scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">Kembali ke Atas &uarr;</button>
+      </div>
     </div>
   </div>
 

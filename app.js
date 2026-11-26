@@ -429,6 +429,14 @@ function setSemuaLembur(jam) {
   }
 }
 
+// Shortcut scroll ke area foto & tombol kirim
+function scrollToFoto() {
+  const el = $('cardFoto') || $('btnKirim');
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
 // Pencarian Cepat Pekerja
 function filterPekerja(keyword) {
   const q = String(keyword || "").toLowerCase().trim();
