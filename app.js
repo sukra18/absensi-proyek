@@ -41,10 +41,10 @@ function notif(pesan, sukses = true) {
   const b = $('alertBox');
   b.innerHTML = `
     <span class="alert-text">${esc(pesan)}</span>
-    <button type="button" class="alert-close" onclick="tutupAlert()" title="Tutup" aria-label="Tutup">&times;</button>
+    <button type="button" class="alert-close" onclick="tutupAlert()" title="Tutup" aria-label="Tutup" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;min-height:unset;padding:0;margin:0;background:none;border:none;color:inherit;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
   `;
   b.className = 'alert ' + (sukses ? 'alert-success' : 'alert-error');
-  b.style.display = 'flex';
+  b.style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
