@@ -630,10 +630,11 @@ dialog::backdrop {
   color: #dc2626;
   font-weight: 600;
   font-size: 12.5px;
-  padding: 6px 10px;
+  padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
   min-height: 36px;
+  width: auto;
   transition: all 0.2s ease;
 }
 
