@@ -633,8 +633,8 @@ dialog::backdrop {
   padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
+  width: 200px;
   min-height: 36px;
-  width: auto;
   transition: all 0.2s ease;
 }
 
