@@ -231,10 +231,34 @@ function onProyekChange(overrideMandor = "") {
   onMandorChange();
 }
 
+// Helper Urutan Keahlian/Jabatan agar sesama jabatan berkumpul rapi
+function getBobotKeahlian(keahlian) {
+  const k = (keahlian || '').trim().toLowerCase();
+  if (k === 'mandor') return 1;
+  if (k === 'kepala tukang') return 2;
+  if (k.startsWith('tukang')) return 3;
+  if (k === 'kenek') return 4;
+  return 5;
+}
+
+function sortPekerja(a, b) {
+  const bobotA = getBobotKeahlian(a.keahlian);
+  const bobotB = getBobotKeahlian(b.keahlian);
+  if (bobotA !== bobotB) return bobotA - bobotB;
+
+  const kA = (a.keahlian || '').trim().toLowerCase();
+  const kB = (b.keahlian || '').trim().toLowerCase();
+  if (kA !== kB) return kA.localeCompare(kB);
+
+  return 0;
+}
+
 function onMandorChange() {
   resetFoto();
   const proyek = $('selectProyek').value, mandor = $('selectMandor').value;
-  pekerjaTampil = semuaPekerja.filter(p => p.proyek_default === proyek && p.nama_mandor === mandor);
+  pekerjaTampil = semuaPekerja
+    .filter(p => p.proyek_default === proyek && p.nama_mandor === mandor)
+    .sort(sortPekerja);
   if ($('inputCariPekerja')) $('inputCariPekerja').value = "";
 
   // Warning jika mandor ini sudah diabsen oleh operator lain
