@@ -604,14 +604,14 @@ dialog::backdrop {
   color: #92400e;
   font-weight: 700;
   font-size: 13px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 36px;
   transition: all 0.2s ease;
 }
 
@@ -625,22 +625,22 @@ dialog::backdrop {
 }
 
 .btn-bulk-reset {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  color: #64748b;
+  background: #fef2f2;
+  border: 1.5px solid #ef4444;
+  color: #dc2626;
   font-weight: 600;
   font-size: 12.5px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
-  min-height: 40px;
+  min-height: 36px;
   transition: all 0.2s ease;
 }
 
 .btn-bulk-reset:hover {
-  background: #f1f5f9;
-  color: #0f172a;
-  border-color: #94a3b8;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #dc2626;
 }
 
 .btn-bulk-reset:active {
