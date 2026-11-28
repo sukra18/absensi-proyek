@@ -479,6 +479,14 @@ function scrollToFoto() {
 }
 
 // Pencarian Cepat Pekerja
+function clearCariPekerja() {
+  const el = $('inputCariPekerja');
+  if (!el) return;
+  el.value = "";
+  filterPekerja("");
+  el.focus();
+}
+
 function filterPekerja(keyword) {
   const q = String(keyword || "").toLowerCase().trim();
   const cards = document.querySelectorAll('.worker-item');
