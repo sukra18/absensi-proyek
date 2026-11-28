@@ -717,3 +717,43 @@ dialog::backdrop {
 .btn-scroll-top:hover {
   color: #1e293b;
 }
+
+/* ===== Responsif Layar Kecil (<=360px) ===== */
+@media (max-width: 360px) {
+  body {
+    padding: 10px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  /* Tombol bulk: reset jangan makan 200px fix, biarkan menyusut */
+  .btn-bulk-reset {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .btn-bulk-lembur {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  /* Tiga tombol status lebih rapat, tidak terpotong */
+  .status-group {
+    gap: 5px;
+  }
+
+  .status-btn {
+    font-size: 12.5px;
+    padding: 4px 2px;
+  }
+
+  /* Input lembur + catatan lebih lega */
+  .extra-inputs {
+    grid-template-columns: 70px 1fr;
+    gap: 6px;
+  }
+}
