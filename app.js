@@ -1,3 +1,19 @@
+// ============================================================================
+// absensi-proyek — app.js
+// ----------------------------------------------------------------------------
+// Daftar isi (Ctrl+Shift+O untuk lompat ke fungsi):
+//   1. KONFIG & UTIL .................. state global, notif, esc, postApi
+//   2. AUTH & MUAT DATA MASTER ........ verifikasiPin, reload tanggal, logout
+//   3. FILTER PROYEK, MANDOR & URUTAN . onProyekChange, sortPekerja, onMandorChange
+//   4. RENDER DAFTAR PEKERJA & AKSI ... renderDaftarPekerja, setStatus, lembur, cari
+//   5. FOTO, GPS & WATERMARK .......... prosesFoto, getGPS
+//   6. KIRIM ABSENSI .................. kirimAbsensi, kirimAbsensiProses
+//   7. MODAL TAMBAH MANDOR / PEKERJA .. bukaModal, simpanPekerja
+// ============================================================================
+
+// ============================================================================
+// 1. KONFIG & UTIL
+// ============================================================================
 const URL_GAS = "https://script.google.com/macros/s/AKfycbws5ZAyiHw5wLzjnHmuRXxYej-sLFlZ2qR9UsY6zsyQRDgdqhCWOYbSNhVBKq-hrdI/exec";
 const $ = id => document.getElementById(id);
 
@@ -76,7 +92,10 @@ async function postApi(action, data = {}) {
   return await res.json();
 }
 
-// 1. Verifikasi PIN & Muat Data Master
+// ============================================================================
+// 2. AUTH & MUAT DATA MASTER
+// ============================================================================
+// Verifikasi PIN & Muat Data Master
 async function verifikasiPin() {
   $('alertBox').style.display = 'none';
   const pin = $('inputPin').value.trim();
@@ -214,7 +233,10 @@ function logout() {
   }
 }
 
-// 2. Filter Proyek & Mandor
+// ============================================================================
+// 3. FILTER PROYEK, MANDOR & URUTAN KEAHLIAN
+// ============================================================================
+// Filter Proyek & Mandor
 function onProyekChange(overrideMandor = "") {
   resetFoto();
   const proyek = $('selectProyek').value;
@@ -317,7 +339,10 @@ function updateBadgeKartu(i) {
   }
 }
 
-// 3. Render Daftar Pekerja dengan Indikator Status Absen
+// ============================================================================
+// 4. RENDER DAFTAR PEKERJA & AKSI KARTU
+// ============================================================================
+// Render Daftar Pekerja dengan Indikator Status Absen
 function renderDaftarPekerja() {
   const list = $('workerList');
   $('jumlahPekerja').textContent = pekerjaTampil.length;
@@ -539,7 +564,10 @@ function toggleMakan(i, btn) {
   updateBadgeKartu(i);
 }
 
-// 4. Kompresi Foto Kamera, Proteksi Foto Realtime & Watermark Otomatis
+// ============================================================================
+// 5. FOTO, GPS & WATERMARK
+// ============================================================================
+// Kompresi Foto Kamera, Proteksi Foto Realtime & Watermark Otomatis
 function prosesFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -642,7 +670,10 @@ function getGPS() {
   });
 }
 
-// 5. Tampilkan Konfirmasi Sebelum Kirim (Hanya Kirim Data Baru atau yang Berubah)
+// ============================================================================
+// 6. KIRIM ABSENSI
+// ============================================================================
+// Tampilkan Konfirmasi Sebelum Kirim (Hanya Kirim Data Baru atau yang Berubah)
 async function kirimAbsensi() {
   $('alertBox').style.display = 'none';
   const mandor = $('selectMandor').value;
@@ -735,7 +766,10 @@ async function kirimAbsensiProses() {
   }
 }
 
-// 6. Modal Tambah Mandor / Pekerja
+// ============================================================================
+// 7. MODAL TAMBAH MANDOR / PEKERJA
+// ============================================================================
+// Modal Tambah Mandor / Pekerja
 function bukaModal(mandorMode) {
   isTambahMandor = mandorMode;
   const proyek = $('selectProyek').value, mandor = $('selectMandor').value;
