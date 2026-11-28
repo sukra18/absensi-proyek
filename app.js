@@ -359,7 +359,7 @@ function renderDaftarPekerja() {
       <!-- Panel Lembur & Catatan Ringkas -->
       <div class="lembur-wrapper">
         <div class="lembur-header">
-          <span class="lembur-label">⏱ Jam Lembur:</span>
+          <span class="lembur-label">Jam Lembur:</span>
           <div class="lembur-quick-btns">
             <button type="button" class="btn-lembur ${p.jam_lembur === 1 ? 'active' : ''}" data-jam="1" onclick="setLembur(${i}, 1)">+1</button>
             <button type="button" class="btn-lembur ${p.jam_lembur === 2 ? 'active' : ''}" data-jam="2" onclick="setLembur(${i}, 2)">+2</button>
@@ -488,7 +488,7 @@ function filterPekerja(keyword) {
     const idx = parseInt(card.getAttribute('data-idx'), 10);
     const p = pekerjaTampil[idx];
     if (!p) return;
-    const match = !q || p.nama_pekerja.toLowerCase().includes(q) || p.keahlian.toLowerCase().includes(q);
+    const match = !q || (p.nama_pekerja && p.nama_pekerja.toLowerCase().includes(q)) || (p.keahlian && p.keahlian.toLowerCase().includes(q));
     card.style.display = match ? 'block' : 'none';
     if (match) matchCount++;
   });
@@ -669,11 +669,11 @@ async function kirimAbsensi() {
       ${jumlahKoreksi > 0 ? `<div class="konfirmasi-row"><span>• Koreksi/Perubahan Data</span><strong style="color:#d97706;">${jumlahKoreksi} orang</strong></div>` : ''}
     </div>
     <div class="konfirmasi-info">
-      <div class="konfirmasi-row"><span>✅ Full (1 hari)</span><span class="badge-full">${jumlahFull} orang</span></div>
-      <div class="konfirmasi-row"><span>🕐 Setengah Hari</span><span class="badge-half">${jumlahSetengah} orang</span></div>
-      <div class="konfirmasi-row"><span>❌ Tidak Hadir</span><span class="badge-absen">${jumlahAbsen} orang</span></div>
-      <div class="konfirmasi-row"><span>⏱ Total Lembur</span><span>${totalLembur > 0 ? totalLembur + ' jam' : '-'}</span></div>
-      <div class="konfirmasi-row"><span>🍽 Dapat Uang Makan</span><span>${jumlahMakan > 0 ? jumlahMakan + ' orang' : '-'}</span></div>
+      <div class="konfirmasi-row"><span>Full (1 hari)</span><span class="badge-full">${jumlahFull} orang</span></div>
+      <div class="konfirmasi-row"><span>Setengah Hari</span><span class="badge-half">${jumlahSetengah} orang</span></div>
+      <div class="konfirmasi-row"><span>Tidak Hadir</span><span class="badge-absen">${jumlahAbsen} orang</span></div>
+      <div class="konfirmasi-row"><span>Total Lembur</span><span>${totalLembur > 0 ? totalLembur + ' jam' : '-'}</span></div>
+      <div class="konfirmasi-row"><span>Dapat Uang Makan</span><span>${jumlahMakan > 0 ? jumlahMakan + ' orang' : '-'}</span></div>
     </div>
   `;
   $('modalKonfirmasi').showModal();
