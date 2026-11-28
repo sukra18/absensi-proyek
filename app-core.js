@@ -7,12 +7,12 @@ let isTambahMandor = false;
 let operatorPerMandor = {};
 let isAdmin = false;
 
-// Tanggal default = hari ini (WIB)
+// Tanggal default = hari ini (WIB) — pakai tanggal lokal, jangan toISOString (UTC)
 function getTodayStr() {
   const d = new Date();
   const off = d.getTimezoneOffset();
   const wib = new Date(d.getTime() + (off + 420) * 60000);
-  return wib.toISOString().slice(0, 10);
+  return `${wib.getFullYear()}-${String(wib.getMonth() + 1).padStart(2, "0")}-${String(wib.getDate()).padStart(2, "0")}`;
 }
 
 function getSelectedTanggal() {
@@ -59,11 +59,14 @@ function resetFoto() {
   if (inputFoto) inputFoto.value = "";
 }
 
-// Helper: escape HTML untuk cegah XSS di innerHTML
+// Helper: escape HTML (termasuk kutip) untuk cegah XSS & atribut rusak di innerHTML
 function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 // Helper Request API ke Google Apps Script

@@ -202,7 +202,19 @@ function setLembur(i, jam) {
 
 function onInputLembur(i, val) {
   const p = pekerjaTampil[i];
-  p.jam_lembur = Number(val || 0);
+  const card = document.querySelector(`.worker-item[data-idx="${i}"]`);
+  const numInput = card ? card.querySelector('.input-lembur') : null;
+
+  if (p.status_hadir === 0) {
+    p.jam_lembur = 0;
+    p.uang_makan = 0;
+    if (numInput) numInput.value = "";
+    updateBadgeKartu(i);
+    return;
+  }
+
+  p.jam_lembur = Math.min(12, Math.max(0, Number(val || 0)));
+  if (numInput && val !== "" && Number(val) !== p.jam_lembur) numInput.value = p.jam_lembur;
 
   // Otomatis aktifkan uang makan HANYA jika lembur 7 jam ke atas
   if (p.jam_lembur >= 7) {
@@ -211,7 +223,6 @@ function onInputLembur(i, val) {
     p.uang_makan = 0;
   }
 
-  const card = document.querySelector(`.worker-item[data-idx="${i}"]`);
   if (card) {
     const mealBtn = card.querySelector('.meal-btn');
     if (mealBtn) {
